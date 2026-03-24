@@ -1,0 +1,7 @@
+#grid-theme-wrapper.ag-theme-alpine .ag-row-selected {
+    background-color: initial !important;
+}
+
+#grid-theme-wrapper-dark.ag-theme-alpine-dark .ag-row-selected {
+    background-color: initial !important;
+}

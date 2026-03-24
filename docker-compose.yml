@@ -1,0 +1,169 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./app/client
+    expose:
+      - "80"
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - nabco-network
+
+  backend:
+    build:
+      context: ./app/server
+    env_file:
+      - ./app/server/.env
+    expose:
+      - "8000"
+    restart: always
+    networks:
+      - nabco-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nabco-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - /etc/letsencrypt:/etc/letsencrypt
+    restart: always
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - nabco-network
+
+networks:
+  nabco-network:
+    external: true
+
+
+
+
+
+
+
+# localhostonly
+
+# version: "3.8"
+# services:
+#     frontend:
+#         build:
+#             context: ./app/client
+#         ports:
+#             - "3000:80"
+#         restart: always
+#         depends_on:
+#             - backend
+#     backend:
+#         build:
+#             context: ./app/server
+#         env_file:
+#             - ./app/server/.env
+#         ports:
+#             - "8000:8000"
+#         restart: always
+#         depends_on:
+#             - routeplanner
+#     routeplanner:
+#         build:
+#             context: ./routeplanner
+#         ports:
+#             - "5000:5000"
+#         restart: always
+#         depends_on:
+#             - osrm
+#     osrm:
+#         image: osrm/osrm-backend
+#         container_name: crm-copy-osrm
+#         ports:
+#             - "6000:5000"
+#         volumes:
+#             - ./osrm-data:/data
+#         command: osrm-routed --algorithm mld /data/uk-latest.osrm
+#         restart: always
+
+
+
+
+
+
+
+# production
+
+# version: "3.8"
+
+# services:
+#   frontend:
+#     build:
+#       context: ./app/client
+#     expose:
+#       - "80"
+#     restart: always
+#     depends_on:
+#       - backend
+#     networks:
+#       - nabco-network
+
+#   backend:
+#     build:
+#       context: ./app/server
+#     env_file:
+#       - ./app/server/.env
+#     expose:
+#       - "8000"
+#     restart: always
+#     depends_on:
+#       - routeplanner
+#     networks:
+#       - nabco-network
+
+#   routeplanner:
+#     build:
+#       context: ./routeplanner
+#     expose:
+#       - "5000"
+#     restart: always
+#     depends_on:
+#       - osrm
+#     networks:
+#       - qualitops-network
+
+#   osrm:
+#     image: osrm/osrm-backend
+#     container_name: crm-copy-osrm
+#     expose:
+#       - "5000"
+#     volumes:
+#       - ./osrm-data:/data
+#     command: osrm-routed --algorithm mld /data/uk-latest.osrm
+#     restart: always
+#     networks:
+#       - qualitops-network
+
+#   nginx:
+#     image: nginx:latest
+#     container_name: nabco-nginx
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     volumes:
+#       - ./nginx/conf.d:/etc/nginx/conf.d
+#       - /etc/letsencrypt:/etc/letsencrypt
+#     restart: always
+#     depends_on:
+#       - frontend
+#       - backend
+#       - routeplanner
+#     networks:
+#       - nabco-network
+
+# networks:
+#   nabco-network:
+#     external: true

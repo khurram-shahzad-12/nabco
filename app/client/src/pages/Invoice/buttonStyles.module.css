@@ -1,0 +1,30 @@
+/*.btnDisabled {*/
+/*    color: rgba(255, 255, 255, 0.3);*/
+/*    box-shadow: none;*/
+/*    background-color: rgba(255, 255, 255, 0.12);*/
+/*}*/
+
+.btnPickList {
+    color: rgb(0, 0, 0) !important;
+    background-color: #00e676 !important;
+}
+
+.btnPickListShortages {
+    color: rgb(0, 0, 0) !important;
+    background-color: #009d52 !important;
+}
+
+.btnZoneRun {
+    color: rgb(0, 0, 0) !important;
+    background-color: #c79121 !important;
+}
+
+.btnVanLoadShopwise {
+    color: rgb(0, 0, 0) !important;
+    background-color: #a90329 !important;
+}
+
+.btnCustomerStatement {
+    color: rgb(0, 0, 0) !important;
+    background-color: #009d52 !important;
+}

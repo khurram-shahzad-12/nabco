@@ -1,0 +1,1 @@
+Ignore this directory, it is a temporary write space for invoice PDFs before deleting and serving. This is required for merging PDFs to allow each customers PDF have page numbers relative to their own invoice.

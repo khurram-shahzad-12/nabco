@@ -1,0 +1,44 @@
+.Header tr th {
+    /*border: solid;*/
+}
+
+.ItemChooserColumn tr td {
+    border-bottom: solid 1px;
+    border-right: solid 1px;
+}
+
+.Barcode {
+    width: 10%;
+}
+.Name {
+    width: 35%;
+}
+.Quantity {
+    width: 5%;
+}
+.Rate {
+    width: 10%;
+}
+.VATCode {
+    width: 10%;
+}
+.VATRate {
+    width: 10%;
+}
+.VATAmount {
+    width: 10%;
+}
+.Value {
+    width: 10%;
+}
+.Action {
+    width: 10%;
+}
+
+.cellRightAlign {
+    text-align: end;
+}
+
+.cellCenterAlign {
+    text-align: center;
+}

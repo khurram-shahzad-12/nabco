@@ -1,0 +1,11 @@
+.linkLight, .linkDark {
+    text-decoration: none;
+}
+
+.linkLight {
+    color: black;
+}
+
+.linkDark {
+    color: white;
+}
