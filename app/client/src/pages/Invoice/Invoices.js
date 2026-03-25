@@ -295,7 +295,7 @@ const Invoices = props => {
                 return zoneA.order < zoneB.order ? -1 : 1;
             }
         },
-         { headerName: "Zone(Map)", width: 130, resizable: false, field: "zone",valueGetter:(params)=>{return params.data?.zone||"Not Assigned"}},
+        //  { headerName: "Zone(Map)", width: 130, resizable: false, field: "zone",valueGetter:(params)=>{return params.data?.zone||"Not Assigned"}},
         { headerName: "Inv Weight", width: 110, resizable: false, field: "items", type: "rightAligned", valueGetter: WeightCellRenderer, comparator: stringValueToNumberComparator, filter: false, floatingFilter: false },
         { headerName: "Inv Value", width: 110, resizable: false, field: "total_incl_vat", type: "rightAligned", valueGetter: PriceCellRenderer, comparator: stringValueToNumberComparator },
         ...currentUserHasPermissions(requiredProfitPermissions) && !reduced ? [{ headerName: "Profit", field: "profit", type: "rightAligned", valueGetter: PriceCellRenderer, comparator: stringValueToNumberComparator }]: [],

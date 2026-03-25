@@ -1337,10 +1337,10 @@ export const Customer = () => {
                                                 </div>
                                             </Grid>
                                             <Grid xs={12} container sx={{mt:"40px"}} spacing={2}>
-                                                <Grid item xs={12} sm={3}>
+                                                {/* <Grid item xs={12} sm={3}>
                                                     <Button variant='contained' onClick={handleOpenMapModal}>ADD MAP LOCATION</Button>
-                                                </Grid>
-                                                <Grid item xs={12} sm={6} md={3} >
+                                                </Grid> */}
+                                                {/* <Grid item xs={12} sm={6} md={3} >
                                                     <Controller
                                                         name="latitude"
                                                         control={control}
@@ -1356,8 +1356,8 @@ export const Customer = () => {
                                                             />
                                                         )}
                                                     />
-                                                </Grid>
-                                                <Grid item xs={12} sm={3}>
+                                                </Grid> */}
+                                                {/* <Grid item xs={12} sm={3}>
                                                     <Controller
                                                         name="longitude"
                                                         control={control}
@@ -1373,7 +1373,7 @@ export const Customer = () => {
                                                             />
                                                         )}
                                                     />
-                                                </Grid>
+                                                </Grid> */}
                                             </Grid>
                                         </Grid>
 
@@ -1460,6 +1460,6 @@ export const Customer = () => {
         <Button variant="contained" onClick={handleOpenDialog} style={{ marginRight: "1em" }} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Customer</Button>
         <Button variant="contained" onClick={fetchAllItems}>Reload</Button>
         <DataViewGrid rowData={rowData} columnDefs={colDefs} loading={sendingData} />
-        {mapModalOpen && <MapModal handleCloseMapModal={handleCloseMapModal} mapModalOpen={mapModalOpen} onSave={handleMapSave} latitude={latitude || '55.84869'} longitude={longitude || '-4.21531'} />}
+        {/* {mapModalOpen && <MapModal handleCloseMapModal={handleCloseMapModal} mapModalOpen={mapModalOpen} onSave={handleMapSave} latitude={latitude || '55.84869'} longitude={longitude || '-4.21531'} />} */}
     </div>
 };
