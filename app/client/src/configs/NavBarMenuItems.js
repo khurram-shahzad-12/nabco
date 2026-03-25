@@ -84,7 +84,7 @@ export const menuItems = [
 			{ name: "Name", label: 'Driver Name', icon: <ContactPhoneIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
 			{ name: "Vehicle", label: 'Vehicle', icon: <LocalShippingIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
 			{ name: "SetCustomerZoneV3", label: 'Zone V3', icon: <PinDropIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM] },
-			{ name: "OrderMap", label: 'Order Map', icon: <AltRouteIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
+			// { name: "OrderMap", label: 'Order Map', icon: <AltRouteIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
 		]
 	},
 	{

@@ -383,13 +383,13 @@ const Invoices = props => {
                 <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoice.pdf")}>View Invoice(s){getSelectedInvoicesCount()}</Button>
                 {/* <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleInvoiceReprintReports("invoiceReprint.pdf")}>Reprint Invoice(s){getSelectedInvoicesCount()}</Button> */}
                 <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoiceByZone.pdf")}>Invoice(s) by Zone{getSelectedInvoicesCount()}</Button>
-                <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoiceByZoneMap.pdf")}>Invoice(s) by Zone(Map){getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoiceByZoneMap.pdf")}>Invoice(s) by Zone(Map){getSelectedInvoicesCount()}</Button> */}
                 <Button variant="contained" className={styles.btnPickList} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("picklist.pdf")}>Picklist{getSelectedInvoicesCount()}</Button>
                 {/* <Button variant="contained" className={styles.btnPickListShortages} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("picklistshortages.pdf")}>Picklist-Shortages{getSelectedInvoicesCount()}</Button> */}
                 <Button variant="contained" className={styles.btnZoneRun} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("zonerun.pdf")}>Zone Run List{getSelectedInvoicesCount()}</Button>
-                <Button variant="contained" className={styles.btnZoneRun} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("zonerunMap.pdf")}>Zone Run List(Map){getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" className={styles.btnZoneRun} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("zonerunMap.pdf")}>Zone Run List(Map){getSelectedInvoicesCount()}</Button> */}
                 <Button variant="contained" className={styles.btnVanLoadShopwise} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("vanloadshopwise.pdf")}>Van Load Shopwise{getSelectedInvoicesCount()}</Button>
-                <Button variant="contained" className={styles.btnVanLoadShopwise} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("vanloadshopwiseMap.pdf")}>Van Load Shopwise(Map){getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" className={styles.btnVanLoadShopwise} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("vanloadshopwiseMap.pdf")}>Van Load Shopwise(Map){getSelectedInvoicesCount()}</Button> */}
                 {(currentUserHasPermissions(requiredCustomerStatementPermissions) && selectedInvoices.length > 0 && sameCustomerInvoicesSelected()) &&
                 <Button variant="contained" className={styles.btnCustomerStatement} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("customerstatement.pdf")}>Customer Statement{getSelectedInvoicesCount()}</Button>
                 }
