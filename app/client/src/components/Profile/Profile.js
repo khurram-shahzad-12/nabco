@@ -1,6 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {useAuth0} from "@auth0/auth0-react";
 import Cookies from 'universal-cookie';
+import { Box, Typography, Avatar } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+
 
 const Profile = props => {
     const {user, isAuthenticated, isLoading, getAccessTokenSilently} = useAuth0();
@@ -35,10 +38,11 @@ const Profile = props => {
 
     return (
         isAuthenticated && (
-            <div>
+            <Box sx={{display:'flex', alignItems: 'center', gap:1, ml: 2, my:2}}>
                 {/* <img src={user.picture} alt={user.name} style={imgStyles}/> */}
-                <h3>{user.name}</h3>
-            </div>
+                <Avatar><PersonIcon/></Avatar>
+                <Typography variant='h6' sx={{fontWeight: 500}}>{user.name}</Typography>
+            </Box>
         )
     );
 };
