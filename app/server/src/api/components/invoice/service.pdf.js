@@ -34,6 +34,20 @@ const LABEL_MISSING_ITEM_NAME = '[ITEM NAME MISSING]';
 const HEX_ROW_SHADE = '#e1e1e1';
 const HEX_CUSTOMER_STATEMENT_HEADER_ROW_SHADE = '#009d52';
 
+const renderTableHeader = ({ doc, x, y, columnWidth }) => {
+    const rowHeight = 20;
+    const col1 = columnWidth * 0.60;
+    const col2 = columnWidth * 0.15;
+    const col3 = columnWidth * 0.15;
+    const col4 = columnWidth * 0.10;
+    doc.save().rect(x, y, columnWidth, rowHeight).fill('#bfc3cc').restore();
+    doc.font('Roboto-Bold').fontSize(11).fillColor('black');
+    doc.text('Products', x + 5, y + 5, { width: col1 - 10 });
+    doc.text('Aisle', x + col1, y + 5, { width: col2, align: 'center' });
+    doc.text('Location', x + col1 + col2, y + 5, { width: col3, align: 'center' });
+    doc.text('Unit', x + col1 + col2 + col3, y + 5, { width: col4 - 5, align: 'right' });
+    return rowHeight + 10;
+};
 const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = false, byZoneSortMap = false) => {
     const neededData = {
         customers: new Set(),
@@ -376,7 +390,7 @@ const generatePicklistPDF = async (invoiceIDList) => {
     const PICKLIST = {};
     const Invoices = await SERVICE_INVOICE.fetchInvoices({ _id: { $in: invoiceIDList } }, ['items']);
     const [Inventory, Categories] = await fetchData([
-        SERVICE_INVENTORY.fetchInventory({}, ['name', 'category']),
+        SERVICE_INVENTORY.fetchInventory({}, ['name', 'category','location', 'aisle']),
         SERVICE_INVENTORY_CATEGORY.fetchInventoryCategories({}, ['name']),
     ]);
     for (const invoice of Invoices) {
@@ -387,7 +401,9 @@ const generatePicklistPDF = async (invoiceIDList) => {
             if (!PICKLIST[itemCategory][item._id]) {
                 PICKLIST[itemCategory][item._id] = {
                     name: Inventory[item._id]?.name ?? item.name ?? LABEL_MISSING_ITEM_NAME,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    aisle: Inventory[item._id]?.aisle ?? '',
+                    location: Inventory[item._id]?.location ?? '',
                 };
             } else {
                 PICKLIST[itemCategory][item._id].quantity += item.quantity;
@@ -423,25 +439,27 @@ const generatePicklistPDF = async (invoiceIDList) => {
     });
     const doc = pdfkit_service.createPDFDoc();
     pdfkit_service.registerFont(doc);
-    pdfkit_service.renderTwoColumnList({
+    pdfkit_service.renderSingleColumnList({
         doc, categories: categoryBlocks,
         fonts: { header: 'Roboto-Bold' },
-        renderRow: ({ doc, item, x, y, columnWidth, idx }) => {
-        const text = pdfkit_service.cleantText(item.name) || "Unknown";
-        const layout = pdfkit_service.calculateWrappedText({doc,text,columnWidth,font: 'Roboto-normal',fontSize: 10.5,lineGap: 0,padding: 8});
-        pdfkit_service.drawWrappedRow({
-            doc,
-            lines: layout.lines,
-            quantity: item.quantity,
-            x,y,
-            columnWidth,
-            lineHeight: layout.lineHeight + 2,
-            rowHeight: layout.rowHeight,
-            rowIndex: idx,
-        });
-        return layout.rowHeight;
-    },
-});
+        renderHeader: ({doc,x,y,columnWidth})=>{return renderTableHeader({doc, x, y, columnWidth})},
+        renderRow: ({ doc, item, x, y, columnWidth, idx }) => { 
+       const rowHeight = 18;
+            const col1 = columnWidth * 0.60; const col2 = columnWidth * 0.15; const col3 = columnWidth * 0.15; const col4 = columnWidth * 0.10;
+            if (idx % 2 === 0) {
+                doc.save()
+                    .rect(x, y, columnWidth, rowHeight)
+                    .fill('#dadae1')
+                    .restore();
+            }
+            const name = pdfkit_service.cleantText(item.name) || "Unknown";
+            doc.font('Roboto-normal').fontSize(10.5).fillColor('black').text(name, x + 5, y + 4, { width: col1 - 10, ellipsis: true });
+            doc.text(item.aisle || '', x + col1, y + 4, { width: col2, align: 'center' })
+            doc.text(item.location || '', x + col1 + col2, y + 4, { width: col3, align: 'center' });
+            doc.font('Roboto-Bold').text(item.quantity.toString(), x + col1 + col2 + col3, y + 4, { width: col4 - 5, align: 'right' })
+            return rowHeight;
+        }
+    });
     pdfkit_service.PDFFooter(doc);
     return doc;
 };
@@ -703,7 +721,7 @@ const generateVanLoadShopwisePDF = async (invoiceIDList, reprint = false, byZone
     const [Customers, Zones, Inventory, Categories] = await fetchData([
         SERVICE_CUSTOMER.fetchCustomers({}, ['customer_name', 'zones', 'delivery_order']),
         SERVICE_ZONE.fetchZones({}, ['name', 'order']),
-        SERVICE_INVENTORY.fetchInventory({}, ['name', 'category']),
+        SERVICE_INVENTORY.fetchInventory({}, ['name', 'category','aisle', 'location']),
         SERVICE_INVENTORY_CATEGORY.fetchInventoryCategories({}, ['name']),
     ]);
     for (const invoice of Invoices) {
@@ -738,6 +756,8 @@ const generateVanLoadShopwisePDF = async (invoiceIDList, reprint = false, byZone
             node[CATEGORY][item._id] ??= {
                 name: ITEM?.name ?? item.name ?? LABEL_MISSING_ITEM_NAME,
                 quantity: 0,
+                aisle: ITEM?.aisle ?? '',
+                location: ITEM?.location ?? '',
             };
             node[CATEGORY][item._id].quantity += item.quantity;
         });
@@ -747,12 +767,11 @@ const generateVanLoadShopwisePDF = async (invoiceIDList, reprint = false, byZone
 const doc = pdfkit_service.createPDFDoc();
 pdfkit_service.registerFont(doc);
 const PAGE_WIDTH = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-const COLUMN_GAP = 15;
-const COLUMN_WIDTH = (PAGE_WIDTH - COLUMN_GAP) / 2;
+const COLUMN_WIDTH = PAGE_WIDTH;
 const FOOTER_HEIGHT = 40;
 const HEADER_HEIGHT = 55;
+const TABLE_HEADER_HEIGHT = 18;
 const PAGE_BOTTOM = doc.page.height - doc.page.margins.bottom - FOOTER_HEIGHT;
-let column = 0;
 let x = doc.page.margins.left;
 let y = doc.page.margins.top + HEADER_HEIGHT;
 const renderHeader = (zone, date) => {
@@ -764,22 +783,10 @@ const renderHeader = (zone, date) => {
             align: 'center'
         });
 };
-const nextColumn = (zone, date) => {
-    if (column === 0) {
-        column = 1;
-        x = doc.page.margins.left + COLUMN_WIDTH + COLUMN_GAP;
-        y = doc.page.margins.top + HEADER_HEIGHT;
-    } else {
-        doc.addPage();
-        column = 0;
-        x = doc.page.margins.left;
-        renderHeader(zone, date);
-        y = doc.page.margins.top + HEADER_HEIGHT;
-    }
-};
+const newPage = (zone, date) => {doc.addPage(); x = doc.page.margins.left; y = doc.page.margins.top + HEADER_HEIGHT; renderHeader(zone, date); y+= renderTableHeader({doc, x, y, columnWidth: COLUMN_WIDTH})}
 const ensureSpace = (height, zone, date) => {
     if (y + height > PAGE_BOTTOM) {
-        nextColumn(zone, date);
+        newPage(zone, date);
         return true;
     }
     return false;
@@ -789,69 +796,84 @@ for (const date of Object.keys(VANLOADSHOPWISE)) {
     const zones = Object.keys(VANLOADSHOPWISE[date]).sort((a, b) => VANLOADSHOPWISE[date][a].order - VANLOADSHOPWISE[date][b].order);
     for (const zone of zones) {
         if (!firstPage) {
-            doc.addPage();
-        }
-        firstPage = false;
-        column = 0;
-        x = doc.page.margins.left;
-        renderHeader(zone, date);
-        y = doc.page.margins.top + HEADER_HEIGHT;
+             newPage(zone, date)
+        }else{
+            firstPage = false; y = doc.page.margins.top + HEADER_HEIGHT; renderHeader(zone, date) ; y += renderTableHeader({doc, x ,y, columnWidth: COLUMN_WIDTH})
+        }    
         const sections = Object.keys(VANLOADSHOPWISE[date][zone]).filter(k => k !== 'order').sort((a, b) =>
                 VANLOADSHOPWISE[date][zone][a].order - VANLOADSHOPWISE[date][zone][b].order
             );
-        for (const section of sections) {
-            const customers = VANLOADSHOPWISE[date][zone][section];
-            for (const customer of Object.keys(customers)) {
-                doc.font("Roboto-Bold").fontSize(12);
-                const customerHeaderText = `[ ${section} ] - ${customer}`;
-                const customerHeaderHeight = doc.heightOfString(customerHeaderText,{width: COLUMN_WIDTH, lineGap: 2})
-                ensureSpace(customerHeaderHeight, zone, date);
-                doc.text(customerHeaderText, x, y, { width: COLUMN_WIDTH});
-                y += customerHeaderHeight + 4;
-                const organizedByCategoryIds = [ '628a6c3bb6b05596c6bf77a3', '628a6c3bb6b05596c6bf779d', '643a8d3f497e0fe000979505' ];
-                const categoryKeys = Object.keys(customers[customer]);
-                const sortedCategories = categoryKeys.sort((a,b) => {
-                    const idA = categoryNameToId[a]; 
-                    const idB = categoryNameToId[b];
-                    const indexOfA = organizedByCategoryIds.indexOf(idA);
-                    const indexOfB = organizedByCategoryIds.indexOf(idB);
-                    const aPriority = indexOfA != -1;
-                    const bPriority = indexOfB != -1;
-                    if (aPriority && bPriority) return indexOfA - indexOfB;
-                    if(aPriority) return -1;
-                    if(bPriority) return 1;
-                    return a.localeCompare(b);
-                })
-                for (const category of sortedCategories) {
-                    const categoryHeight = doc.heightOfString(category, {width: COLUMN_WIDTH - 4, lineGap: 2})
-                    ensureSpace(categoryHeight + 4, zone, date);
+             for (const section of sections) {
+                const customers = VANLOADSHOPWISE[date][zone][section];
+                for (const customer of Object.keys(customers)) {
                     doc.font("Roboto-Bold").fontSize(12);
-                    doc.text(category, x + 4, y, { width: COLUMN_WIDTH });
-                    y += categoryHeight + 4;
-                    let rowIndex = 0;
-                    for (const itemID in customers[customer][category]) {
-                        const item = customers[customer][category][itemID];
-                        const name = pdfkit_service.cleantText(item.name);
-                        const qty = String(item.quantity);
-                            const layout = pdfkit_service.calculateWrappedText({
-                                doc,text: name,columnWidth: COLUMN_WIDTH,font: 'Roboto-normal',fontSize: 11,lineGap: 2,padding: 4, 
+                   const customerHeaderText = `[ ${section} ] - ${customer}`;
+                    const customerHeaderHeight = doc.heightOfString(customerHeaderText, { width: COLUMN_WIDTH, lineGap: 2 })
+                    ensureSpace(customerHeaderHeight, zone, date);
+                    doc.text(customerHeaderText, x, y, { width: COLUMN_WIDTH });
+                    y += customerHeaderHeight + 4;
+                    const organizedByCategoryIds = ['628a6c3bb6b05596c6bf77a3', '628a6c3bb6b05596c6bf779d', '643a8d3f497e0fe000979505'];
+                    const categoryKeys = Object.keys(customers[customer]);
+                    const sortedCategories = categoryKeys.sort((a, b) => {
+                        const idA = categoryNameToId[a];
+                        const idB = categoryNameToId[b];
+                        const indexOfA = organizedByCategoryIds.indexOf(idA);
+                        const indexOfB = organizedByCategoryIds.indexOf(idB);
+                        const aPriority = indexOfA != -1;
+                        const bPriority = indexOfB != -1;
+                        if (aPriority && bPriority) return indexOfA - indexOfB;
+                        if (aPriority) return -1;
+                        if (bPriority) return 1;
+                        return a.localeCompare(b);
+                    })
+                    for (const category of sortedCategories) {
+                        const categoryHeight = doc.heightOfString(category, { width: COLUMN_WIDTH - 4, lineGap: 2 })
+                        ensureSpace(categoryHeight + 4, zone, date);
+                        doc.font("Roboto-Bold").fontSize(12);
+                        doc.text(category, x + 4, y, { width: COLUMN_WIDTH });
+                        y += categoryHeight + 4;
+                        let rowIndex = 0;
+                        for (const itemID in customers[customer][category]) {
+                            const item = customers[customer][category][itemID];
+                            const name = pdfkit_service.cleantText(item.name);
+                            const qty = String(item.quantity);
+                            const aisle = item.aisle || '';
+                            const location = item.location || '';
+                            const nameColWidth = COLUMN_WIDTH * 0.60;
+                            const aisleColWidth = COLUMN_WIDTH * 0.15;
+                            const locationColWidth = COLUMN_WIDTH * 0.15;
+                            const qtyColWidth = COLUMN_WIDTH * 0.10;
+                            const nameX = x;
+                            const aisleX = x + nameColWidth;
+                            const locationX = aisleX + aisleColWidth;
+                            const qtyX = locationX + locationColWidth;
+                            const layout = pdfkit_service.calculateWrappedText({ doc, text: name, columnWidth: nameColWidth, font: 'Roboto-normal', fontSize: 11, lineGap: 2, padding: 6 });
+                            const { lines, lineHeight, rowHeight } = layout;
+                            ensureSpace(rowHeight, zone, date);
+                            if (rowIndex % 2 === 0) { doc.save().rect(x, y, COLUMN_WIDTH, rowHeight).fill('#dadae1').restore(); }
+                            doc.font('Roboto-normal').fontSize(11).fillColor('black');
+                            lines.forEach((line, idx) => {
+                                doc.text(line, nameX + 4, y + 1 + idx * lineHeight, {
+                                    width: nameColWidth - 8,
+                                    lineGap: 2
+                                }); 
                             });
-                    ensureSpace(layout.rowHeight, zone, date);
-                    pdfkit_service.drawWrappedRow({ doc,lines: layout.lines, quantity: qty,x,y,columnWidth: COLUMN_WIDTH, lineHeight: layout.lineHeight, rowHeight: layout.rowHeight, rowIndex: rowIndex });
-                    y += layout.rowHeight;
-                        rowIndex ++;
+                            doc.text(aisle, aisleX, y + 2, { width: aisleColWidth, align: 'center' });
+                            doc.text(location, locationX, y + 2, { width: locationColWidth, align: 'center' });
+                            doc.font('Roboto-Bold').text(qty, qtyX, y + 2, { width: qtyColWidth - 5, align: 'right' });
+                            y += rowHeight;
+                            rowIndex++;
+                        }
+                        y += 6;
                     }
-                    y += 6;
+                    y += 20;
                 }
                 y += 20;
             }
         }
     }
-}
-pdfkit_service.PDFFooter(doc);
-return doc;
-
-
+    pdfkit_service.PDFFooter(doc);
+    return doc;
 };
 const generateCustomerStatementPDF = async (invoiceIDList) => {
     const Invoices = await SERVICE_INVOICE.fetchInvoices({_id: {$in: invoiceIDList}},

@@ -120,6 +120,52 @@ const drawWrappedRow = ({ doc, lines, quantity, x, y, columnWidth, lineHeight, r
     });
     doc.text(quantity.toString(), x, y + 2, { width: columnWidth - 10, align: 'right' });
 };
+const renderSingleColumnList = ({ doc, categories, renderRow, renderHeader, fonts }) => {
+    const FOOTER_HEIGHT = 40;
+    const PAGE_WIDTH = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const COLUMN_WIDTH = PAGE_WIDTH;
+    const PAGE_BOTTOM = doc.page.height - doc.page.margins.bottom - FOOTER_HEIGHT;
+    let x = doc.page.margins.left;
+    let y = doc.page.margins.top;
+    if(renderHeader) {y += renderHeader({doc, x, y, columnWidth: COLUMN_WIDTH})};
+    const renderCategoryHeader = (name) => {
+        doc.font(fonts.header)
+           .fontSize(12)
+           .fillColor('black')
+           .text(name, x, y, { width: COLUMN_WIDTH });
+        y += 18;
+    };
+    const nextPage = (header) => {
+        doc.addPage();
+        x = doc.page.margins.left;
+        y = doc.page.margins.top;
+        if(renderHeader) {y += renderHeader({doc, x, y, columnWidth: COLUMN_WIDTH})}
+        if (header) renderCategoryHeader(header);
+    };
+    categories.forEach((category) => {
+        if (y + 20 > PAGE_BOTTOM) nextPage();
+        renderCategoryHeader(category.name);
+        category.items.forEach((item, idx) => {
+            const text = cleantText(item.name) || "Unknown";
+            const textHeight = doc.heightOfString(text, {
+                width: COLUMN_WIDTH - 40,
+                lineGap: 6,
+            });
+            const rowHeight = Math.max(16, textHeight + 4);
+            if (y + rowHeight > PAGE_BOTTOM) { nextPage(category.name); }
+            renderRow({
+                doc,
+                item,
+                x,
+                y,
+                columnWidth: COLUMN_WIDTH,
+                idx
+            });
+            y += rowHeight;
+        });
+        y += 12;
+    });
+};
 module.exports = {
     createPDFDoc, 
     registerFont,
@@ -128,4 +174,5 @@ module.exports = {
     renderTwoColumnList,
     drawWrappedRow,
     calculateWrappedText,
+    renderSingleColumnList,
 }

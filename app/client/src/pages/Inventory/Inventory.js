@@ -585,7 +585,24 @@ export const Inventory = () => {
                     mappingDataLoaded: suppliersData.loaded
                 })
             }
-        }] : []
+        }] : [],
+        {
+            field: "aisle",
+            label: "Aisle",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            }
+        }, {
+            field: "location",
+            label: "Location",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            }
+        }
     ];
 
     const checkboxColumnDef = { headerName: "", checkboxSelection: true, headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly:true, filter: false, minWidth: 60, maxWidth: 60 }

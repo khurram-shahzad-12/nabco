@@ -73,7 +73,9 @@ const SCHEMA_INVENTORY = new mongoose.Schema({
     default_sale_price: {type: Number, required: true},
     collection_price:   {type: Number, required: true},
     prices_last_updated:{type: Date, required: true, default: moment().format('YYYY-MM-DD'), index: true},
-    item_image:         {type: String}
+    item_image:         {type: String},
+    aisle:              {type:String},
+    location:           {type:String},
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,
