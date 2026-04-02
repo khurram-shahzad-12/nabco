@@ -775,7 +775,7 @@ const PAGE_BOTTOM = doc.page.height - doc.page.margins.bottom - FOOTER_HEIGHT;
 let x = doc.page.margins.left;
 let y = doc.page.margins.top + HEADER_HEIGHT;
 const renderHeader = (zone, date) => {
-    doc.font('Roboto-Bold').fontSize(14).text(`Van Load Shop Wise Report - Zone: ${zone}`, {
+    doc.font('Roboto-Bold').fontSize(14).text(`Wearhouses Picking Slip - Zone: ${zone}`, {
             align: 'center'
         });
     doc.moveDown(0.2);
