@@ -272,13 +272,9 @@ export const Customer = () => {
     const deliveryZoneDaysChangeListener = (newZones) => {
         setSelectedZones(prev => {
             const updated = [...prev];
-
             newZones.forEach((val, i) => {
-                if (val !== null) {
-                    updated[i] = val;
-                }
+                updated[i] = val;
             });
-
             return updated;
         });
     };
