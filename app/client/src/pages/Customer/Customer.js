@@ -55,7 +55,15 @@ import { useLocation } from 'react-router-dom';
 import axiosDefault from '../../components/axiosDefault/axiosDefault';
 
 const API_NAME = '/customer';
+const TabPanel = (props) => {
+    const { children, value, index } = props;
 
+    return (
+        <div hidden={value !== index}>
+            {value === index && children}
+        </div>
+    );
+};
 export const Customer = () => {
     const axios = axiosDefault();
     const location = useLocation();
@@ -258,19 +266,32 @@ export const Customer = () => {
         setFormValues(defaultFormState);
     };
 
+    // const deliveryZoneDaysChangeListener = (newZones) => {
+    //     setSelectedZones(newZones)
+    // };
     const deliveryZoneDaysChangeListener = (newZones) => {
-        setSelectedZones(newZones)
+        setSelectedZones(prev => {
+            const updated = [...prev];
+
+            newZones.forEach((val, i) => {
+                if (val !== null) {
+                    updated[i] = val;
+                }
+            });
+
+            return updated;
+        });
     };
 
-    const TabPanel = (props) => {
-        const { children, value, index } = props;
+    // const TabPanel = (props) => {
+    //     const { children, value, index } = props;
 
-        return (
-            <div hidden={value !== index}>
-                {value === index && children}
-            </div>
-        );
-    };
+    //     return (
+    //         <div hidden={value !== index}>
+    //             {value === index && children}
+    //         </div>
+    //     );
+    // };
 
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
@@ -1328,7 +1349,7 @@ export const Customer = () => {
                                         </Grid>
                                         <Grid item xs={12} sm={6}>
                                             <Grid item xs={12}>
-                                                <div style={{ height: "350px" }} key={"delivery_day_zone_picker"}>
+                                                <div style={{ height: "350px" }} key={JSON.stringify(selectedZones)}>
                                                     <span>Delivery Day Zones</span>
                                                     <DeliveryDayZonePicker zonesData={zonesData}
                                                         existingZoneSelection={selectedZones}
