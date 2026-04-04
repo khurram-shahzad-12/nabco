@@ -20,6 +20,7 @@ router.all('/invoice.pdf', claimCheck(allReadInvoicesCheck, "Failed read invoice
 router.all('/invoiceByZone.pdf', readInvoicesCheck, controllerPDF.createInvoiceByZone);
 router.all('/invoiceByZoneMap.pdf', readInvoicesCheck, controllerPDF.createInvoiceByZoneMap);
 router.all('/invoiceReprint.pdf', claimCheck(allReadInvoicesCheck, "Failed read invoices check"), controllerPDF.createInvoiceReprint);
+router.all('/deliveryNote.pdf', claimCheck(allReadInvoicesCheck, "Failed read invoices check"), controllerPDF.deliveryNote);
 router.post('/picklist.pdf', claimCheck(allReadInvoicesCheck, "Failed read invoices check"), controllerPDF.createPicklist);
 router.post('/picklistshortages.pdf', readInvoicesCheck, controllerPDF.createPicklistShortages);
 router.post('/zonerun.pdf', readInvoicesCheck, controllerPDF.createZoneRun);

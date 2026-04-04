@@ -393,6 +393,7 @@ const Invoices = props => {
                 {(currentUserHasPermissions(requiredCustomerStatementPermissions) && selectedInvoices.length > 0 && sameCustomerInvoicesSelected()) &&
                 <Button variant="contained" className={styles.btnCustomerStatement} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("customerstatement.pdf")}>Customer Statement{getSelectedInvoicesCount()}</Button>
                 }
+                <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("deliveryNote.pdf")}>Delivery Note{getSelectedInvoicesCount()}</Button>
                 {(currentUserHasPermissions(requiredProfitPermissions) && selectedInvoices.length > 0) && <Button variant="contained" disabled>Total Profit: {getSelectedInvoicesProfitTotal()}</Button>}
             </div>
             <div style={{height: "90%"}}>

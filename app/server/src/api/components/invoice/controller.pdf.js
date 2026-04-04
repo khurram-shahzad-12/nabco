@@ -35,7 +35,9 @@ const createVanLoadShopwiseMap = async (req, res, next) => {
 const createCustomerStatement = async (req, res, next) => {
     await streamPDF(req, res, next, SERVICE_PDF.generateCustomerStatementPDF);
 };
-
+const deliveryNote = async (req, res, next) => {
+    await streamInvoicePDF(req, res, next, SERVICE_PDF.generateDeliveryNotePDF, false, false, false);
+};
 const validateRequest = (req) => {
     if (Array.isArray(req.body.invoices) && req.body.invoices.length && validate.id(req.body.invoices, 'invoice')) {
         return [...(new Set(req.body.invoices))];
@@ -70,4 +72,5 @@ module.exports = {
     createInvoiceByZoneMap,
     createZoneRunMap,
     createVanLoadShopwiseMap,
+    deliveryNote,
 };

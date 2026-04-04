@@ -999,6 +999,137 @@ const sortInvoiceItemsDescending = items => {
         return 0;
     }).reverse();
 }
+const generateDeliveryNotePDF = async (invoiceIDList) => {
+    const neededData = { customers: new Set(), items: new Set() };
+    const Invoices = await SERVICE_INVOICE.fetchInvoices(
+        { _id: { $in: invoiceIDList } },
+        ['invoice_date', 'sale_number', 'customer', 'items']
+    );
+    for (const invoice of Invoices) {
+        neededData.customers.add(invoice.customer.toString());
+        for (const item of invoice.items) neededData.items.add(item._id.toString());
+    }
+
+    const [Customers, Inventory] = await fetchData([
+        SERVICE_CUSTOMER.fetchCustomers(
+            { _id: { $in: [...neededData.customers] } },
+            ['customer_name', 'address', 'city', 'mobile']
+        ),
+        SERVICE_INVENTORY.fetchInventory(
+            { _id: { $in: [...neededData.items] } },
+            ['name', 'barcode']
+        )
+    ]);
+    const UNDERSCORE = "______________________________________________________________";
+    const content = [];
+    Invoices.forEach((invoice, invoiceIndex) => {
+        const isLastInvoice = invoiceIndex === Invoices.length - 1;
+        content.push(
+            {
+                columns: [
+                    {
+                        image: currentConfig.logo,
+                        width: 70,
+                        margin: [0, 0, 0, 10]
+                    },
+                    {
+                        text: 'DELIVERY NOTE',
+                        alignment: 'center',
+                        fontSize: 20,
+                        bold: true,
+                        margin: [0, 10, 40, 30]
+                    }
+                ]
+            },
+            {
+                columns: [
+                    {
+                        width: '60%',
+                        text: [
+                            `Customer: ${Customers[invoice.customer]?.customer_name || ''}\n`,
+                            `Address: ${Customers[invoice.customer]?.address || ''}\n`,
+                            `City: ${Customers[invoice.customer]?.city || ''}\n`,
+                            `Mobile: ${Customers[invoice.customer]?.mobile || ''}\n`,
+                        ]
+                    },
+                    {
+                        width: '40%',
+                        text: [
+                            `Date: ${moment(invoice.invoice_date).format(momentFormat)}\n`,
+                        ],
+                        alignment: 'right'
+                    }
+                ]
+            },
+            '\n\n',
+            {
+                layout: 'headerLineOnly',
+                table: {
+                    widths: ['20%', '60%', '20%'],
+                    headerRows: 1,
+                    body: invoice.items.reduce((a, item, index) => {
+                        const fill = index % 2 === 0 ? '#FFFFFF' : '#F2F2F2';
+
+                        a.push([
+                            { text: Inventory[item._id]?.barcode || '', fillColor: fill },
+                            { text: Inventory[item._id]?.name || item.name || '', fillColor: fill },
+                            { text: item.quantity, alignment: 'right', fillColor: fill }
+                        ]);
+
+                        return a;
+                    }, [
+                        [
+                            { text: 'Item#', style: 'tableHeader' },
+                            { text: 'Item Name', style: 'tableHeader' },
+                            { text: 'Quantity', style: 'tableHeader', alignment: 'right' },
+                        ]
+                    ])
+                }
+            },
+            !isLastInvoice ? { text: '', pageBreak: 'after' } : {}
+        );
+    });
+
+    const docDefinition = {
+        pageMargins: [40, 50, 40, 220],
+        defaultStyle: { font: 'Roboto', fontSize: 10 },
+        content,
+        footer: (currentPage, pageCount) => ({
+            margin: [40, 0, 30, 20],
+            stack: [
+                {
+                    table: {
+                        widths: ['100%'],
+                        body: [
+                            [{ text: `Name: ${UNDERSCORE}`, alignment: 'left', border: [false, false, false, false], margin: [0, 20, 0, 0] }],
+                            [{ text: `Date: ${UNDERSCORE}`, alignment: 'left', border: [false, false, false, false], margin: [0, 10, 0, 0] }],
+                            [{ text: `Sign: ${UNDERSCORE}`, alignment: 'left', border: [false, false, false, false], margin: [0, 10, 0, 0] }]
+                        ]
+                    },
+                    layout: 'noBorders'
+                },
+                {
+                    text: `Page ${currentPage} of ${pageCount}`,
+                    alignment: 'center',
+                    fontSize: 8,
+                    margin: [0, 100, 0, 0]
+                }
+            ]
+        }),
+        styles: { tableHeader: { bold: true, fontSize: 10 } }
+    };
+
+    const pdfDoc = pdfPrinter.createPdfKitDocument(docDefinition);
+    const chunks = [];
+    pdfDoc.on('data', chunk => chunks.push(chunk));
+    const pdfBuffer = await new Promise((resolve, reject) => {
+        pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+        pdfDoc.on('error', reject);
+        pdfDoc.end();
+    });
+
+    return pdfBuffer;
+};
 
 module.exports = {
     generateInvoicePDF,
@@ -1007,4 +1138,5 @@ module.exports = {
     generateZoneRunPDF,
     generateVanLoadShopwisePDF,
     generateCustomerStatementPDF,
+    generateDeliveryNotePDF,
 };
