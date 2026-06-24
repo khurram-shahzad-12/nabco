@@ -32,6 +32,7 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt
+      - ./certbot:/var/www/certbot
     restart: always
     depends_on:
       - frontend
