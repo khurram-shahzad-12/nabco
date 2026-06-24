@@ -36,6 +36,7 @@ const SCHEMA_SUPPLIER_INVOICES = new mongoose.Schema({
     payments:       {type: [MODEL_PAYMENT], default: [],
         validate: {validator: (value) => Array.isArray(value)},
     },
+    payment_due_date: {type: Date},
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,

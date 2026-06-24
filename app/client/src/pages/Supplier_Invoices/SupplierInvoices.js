@@ -200,7 +200,7 @@ export const SupplierInvoices = () => {
                 type: "text",
             },
             gridProps: {
-                width: 150,
+                width: 180,
                 valueGetter: props => LinkedFieldCellValueGetterRenderer({
                     ...props,
                     idMapping: inventorySuppliers.map,
@@ -217,7 +217,8 @@ export const SupplierInvoices = () => {
             textFieldProps: {
                 required: true,
                 type: "text"
-            }
+            },
+            gridProps: {width: 150},
         },
         {
             field: "invoice_date",
@@ -226,7 +227,8 @@ export const SupplierInvoices = () => {
             changeListener: newDate => handleDateChange(newDate, "invoice_date"),
             gridProps: {
                 valueGetter: props => moment(props.data.invoice_date).format("DD/MM/YYYY"),
-                comparator: dateStringComparator
+                comparator: dateStringComparator,
+                width: 130,
             }
         },
         {
@@ -242,7 +244,7 @@ export const SupplierInvoices = () => {
                 }
             },
             gridProps: {
-                width: 150,
+                width: 100,
                 type: "rightAligned",
                 valueGetter: PriceCellRenderer,
                 comparator: stringValueToNumberComparator
@@ -268,51 +270,52 @@ export const SupplierInvoices = () => {
                 hide: true
             }
         },
-        {
-            field: "standard_rate",
-            label: "Standard Rate(Automatically calculated)",
-            type: "textfield",
-            changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
-            textFieldProps: {
-                type: "number",
-                inputProps: {
-                    step: 0.01
-                },
-                disabled: true
-            },
-            gridProps: {
-                width: 150,
-                type: "rightAligned",
-                valueGetter: PriceCellRenderer,
-                comparator: stringValueToNumberComparator,
-                hide: true
-            }
-        },
-        {
-            field: "zero_rate",
-            label: "Zero Rate(Automatically calculated)",
-            type: "textfield",
-            changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
-            textFieldProps: {
-                type: "number",
-                inputProps: {
-                    step: 0.01
-                },
-                disabled: true
-            },
-            gridProps: {
-                width: 150,
-                type: "rightAligned",
-                valueGetter: PriceCellRenderer,
-                comparator: stringValueToNumberComparator,
-                hide: true
-            }
-        },
+        // {
+        //     field: "standard_rate",
+        //     label: "Standard Rate(Automatically calculated)",
+        //     type: "textfield",
+        //     changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
+        //     textFieldProps: {
+        //         type: "number",
+        //         inputProps: {
+        //             step: 0.01
+        //         },
+        //         disabled: true
+        //     },
+        //     gridProps: {
+        //         width: 150,
+        //         type: "rightAligned",
+        //         valueGetter: PriceCellRenderer,
+        //         comparator: stringValueToNumberComparator,
+        //         hide: true
+        //     }
+        // },
+        // {
+        //     field: "zero_rate",
+        //     label: "Zero Rate(Automatically calculated)",
+        //     type: "textfield",
+        //     changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
+        //     textFieldProps: {
+        //         type: "number",
+        //         inputProps: {
+        //             step: 0.01
+        //         },
+        //         disabled: true
+        //     },
+        //     gridProps: {
+        //         width: 150,
+        //         type: "rightAligned",
+        //         valueGetter: PriceCellRenderer,
+        //         comparator: stringValueToNumberComparator,
+        //         hide: true
+        //     }
+        // },
         {
             field: "delivery_status",
             label: "Delivery Status",
             type: "dropdown_fixed",
             changeListener: inputChangeListener,
+            gridProps: {width: 150},
             textFieldProps: {
                 required: true
             },
@@ -330,6 +333,7 @@ export const SupplierInvoices = () => {
             label: "Invoice Type",
             type: "dropdown_fixed",
             changeListener: inputChangeListener,
+            gridProps: {width:135},
             textFieldProps: {
                 required: true
             },
@@ -348,6 +352,7 @@ export const SupplierInvoices = () => {
             label: "Expense Type",
             type: "dropdown_fixed",
             changeListener: inputChangeListener,
+            gridProps: {width: 140},
             textFieldProps: {
                 required: true
             },
@@ -358,8 +363,38 @@ export const SupplierInvoices = () => {
                     <MenuItem value={"Expense"} key={"Expense"}>Expense</MenuItem>,
                 ]
             }
-        }
+        },
+        {
+            field: "payment_due_date",
+            label: "Payment Due Date",
+            type: "datepicker",
+            changeListener: newDate => handleDateChange(newDate, "payment_due_date"),
+            gridProps: {
+                valueGetter: props => props.data.payment_due_date ? moment(props.data.payment_due_date).format("DD/MM/YYYY") : "",
+                comparator: dateStringComparator,
+                width: 150,
+                cellStyle: params => {
+                    const dueDate = params.data.payment_due_date;
+                    if(!dueDate) {return {}};
+                    const total = Number(params.data.total || 0);
+                    const amountPaid = (params.data.payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+                    if(amountPaid >= total) {return {color: "#2E7D32", fontWeight: "bold"};}
+                    const today = moment().startOf("day");
+                    const due = moment(dueDate).startOf("day");
+                    const daysRemaining = due.diff(today, "days");
+                    if(daysRemaining < 3){return {color: "#D32F2F", fontWeight: 'bold'}}
+                    if(daysRemaining >= 3 && daysRemaining <= 7){return {color:"#F57C00", fontWeight: "bold"}}
+                    if(daysRemaining > 7){return {color:"#FBC02D", fontWeight:"bold"}};
+                    return {};
+                }
+            }
+        },
     ];
+        const handleSetFormValuesForEdit = (data) => {
+        const formData = {...data};
+        if(!formData.payment_due_date) {formData.payment_due_date = null};
+        setFormValues(formData);
+    }
 
     const rowSelectionColumnDef = {
         headerName: "",
@@ -387,7 +422,7 @@ export const SupplierInvoices = () => {
             cellRendererParams:
                 {
                     setEditModeCB: setEditMode,
-                    setFormValuesCB: setFormValues,
+                    setFormValuesCB: handleSetFormValuesForEdit,
                     apiName: API_NAME,
                     displaySnackState: displaySnackState,
                     setSnackState: setSnackState,
@@ -402,6 +437,7 @@ export const SupplierInvoices = () => {
     const paidStatusColumn = {
         headerName: "Paid/Unpaid",
         field: "total",
+        width: 130,
         valueGetter: SupplierInvoicesBalancePaidUnpaidCellRenderer,
         cellStyle: params => {
             let styles;
@@ -423,6 +459,7 @@ export const SupplierInvoices = () => {
         }
     };
     const defaultFormState = getDefaultFormFields(supplierData);
+    defaultFormState.payment_due_date = null;
     const [formValues, setFormValues] = useState({...defaultFormState});
     const colDefs = [rowSelectionColumnDef, ...getColumnDefs(supplierData), paidStatusColumn, createdDateColDef, actionsColDef(setFormValues)];
 

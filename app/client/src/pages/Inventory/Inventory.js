@@ -319,7 +319,7 @@ export const Inventory = () => {
                 type: "text"
             },
             gridProps: {
-                width: 150,
+                width: 110,
                 valueGetter: props => LinkedFieldCellValueGetterRenderer({
                     ...props,
                     idMapping: categoriesData.map,
@@ -341,7 +341,8 @@ export const Inventory = () => {
                 }
             },
             gridProps: {
-                type: "rightAligned"
+                type: "rightAligned",
+                width: 110,
             }
         },
         ... currentUserHasPermissions([process.env.REACT_APP_WRITE_INVENTORY_ALERT_QUANTITY]) ? [{
@@ -621,10 +622,12 @@ export const Inventory = () => {
             setDialogOpen(false);
         }
     }, [editMode]);
+    const hiddenGridFields = ["default_sale_price", "weight_grams", "weight_kg","min_sale_price", "collection_price", "active", "vat", "alert_quantity", "tags"];
 
     const defaultFormState = getDefaultFormFields(itemData);
     const [formValues, setFormValues] = useState({...defaultFormState});
-    const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, !currentUserHasPermissions(requiredDeletePermissions), requiredWritePermissions, showImageFunction), checkboxColumnDef, ...getColumnDefs(itemData)];
+    const gridItemData = itemData.filter(item => !hiddenGridFields.includes(item.field))
+    const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, !currentUserHasPermissions(requiredDeletePermissions), requiredWritePermissions, showImageFunction), checkboxColumnDef, ...getColumnDefs(gridItemData)];
 
     // if(!currentUserHasPermissions(process.env.REACT_APP_DELETE_INVENTORY_ITEMS)) {
     //     return "YOU DO NOT HAVE PERMISSION TO ACCESS THIS PAGE";

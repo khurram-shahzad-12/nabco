@@ -35,7 +35,7 @@ const CRMManagement = () => {
     useEffect(() => { fetchAllLeads(); }, [startDate, endDate]);
     return (
         <Box sx={{ flexGrow: 1 }}>
-            <Container maxWidth="xl" sx={{ mb: 2 }}>
+            <Container maxWidth={false} sx={{ mb: 2 }}>
                 <Paper sx={{ width: '100%' }}>
                     <Tabs
                         value={tabValue}

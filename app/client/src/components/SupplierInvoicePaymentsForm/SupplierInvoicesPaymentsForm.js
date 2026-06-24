@@ -138,6 +138,7 @@ const SupplierPaymentsForm = props => {
                     <MenuItem value={"BACS"} key={"BACS"}>BACS</MenuItem>,
                     <MenuItem value={"Cheque"} key={"Cheque"}>Cheque</MenuItem>,
                     <MenuItem value={"Credit"} key={"Credit"}>Credit</MenuItem>,
+                    <MenuItem value={"Direct Debit"} key={"Dbit"}>Direct Debit</MenuItem>,
                 ]
             }
         },

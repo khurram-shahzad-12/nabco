@@ -3,7 +3,7 @@ const validate = require('../../../utils/validate');
 const extractProperties = require('./../../../utils/extractProperties');
 const moment = require("moment");
 
-const allowedModifiableProperties = ['supplier', 'invoice_number', 'invoice_date', 'total', 'vat', 'standard_rate', 'zero_rate', 'delivery_status', 'invoice_type', 'expense_type'];
+const allowedModifiableProperties = ['supplier', 'invoice_number', 'invoice_date', 'total', 'vat', 'standard_rate', 'zero_rate', 'delivery_status', 'invoice_type', 'expense_type', 'payment_due_date'];
 const allowedPaymentModifiableProperties = ['payments'];
 const buildQuery = (req) => {
     const {supplier_day_start, supplier_day_end} = req.query;
