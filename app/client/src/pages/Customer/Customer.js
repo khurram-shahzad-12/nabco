@@ -320,10 +320,22 @@ export const Customer = () => {
 
     const customerData = [
         {
+            field: "account",
+            label: "Account ID",
+            type: "textfield",
+            columnOrder: 0,
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                required: true,
+                type: "texte",
+                autoFocus: true
+            }
+        },
+        {
             field: "legal_entity",
             label: "Legal Entity",
             type: "textfield",
-            columnOrder: 0,
+            columnOrder: 1,
             changeListener: inputChangeListener,
             textFieldProps: {
                 required: false,
@@ -335,7 +347,7 @@ export const Customer = () => {
             field: "customer_name",
             label: "Customer Name",
             type: "textfield",
-            columnOrder: 1,
+            columnOrder: 2,
             changeListener: inputChangeListener,
             textFieldProps: {
                 required: true,
@@ -347,7 +359,7 @@ export const Customer = () => {
             field: "contact_name",
             label: "Contact Name",
             type: "textfield",
-            columnOrder: 2,
+            columnOrder: 3,
             changeListener: inputChangeListener,
             textFieldProps: {
                 type: "text"
@@ -357,7 +369,7 @@ export const Customer = () => {
             field: "mobile",
             label: "Mobile",
             type: "textfield",
-            columnOrder: 3,
+            columnOrder: 4,
             changeListener: inputChangeListener,
             textFieldProps: {
                 type: "tel"
@@ -367,7 +379,7 @@ export const Customer = () => {
             field: "phone",
             label: "Landline Number",
             type: "textfield",
-            columnOrder: 4,
+            columnOrder: 5,
             changeListener: inputChangeListener,
             textFieldProps: {
                 type: "tel"
@@ -416,7 +428,7 @@ export const Customer = () => {
             field: "email",
             label: "Email",
             type: "textfield",
-            columnOrder: 5,
+            columnOrder: 6,
             changeListener: inputChangeListener,
             textFieldProps: {
                 type: "email"
@@ -429,7 +441,7 @@ export const Customer = () => {
             field: "sales_rep",
             label: "Sales Rep",
             type: "dropdown",
-            columnOrder: 6,
+            columnOrder: 7,
             dropdownOptions: salesRepData,
             defaultState: "",
             changeListener: inputChangeListener,
@@ -449,7 +461,7 @@ export const Customer = () => {
             field: "active",
             label: "Active",
             type: "checkbox",
-            columnOrder: 7,
+            columnOrder: 8,
             defaultState: true,
             changeListener: checkboxChangeListener,
             gridProps: {
@@ -460,7 +472,7 @@ export const Customer = () => {
             field: "on_hold",
             label: "On HOLD",
             type: "checkbox",
-            columnOrder: 8,
+            columnOrder: 9,
             defaultState: false,
             changeListener: checkboxChangeListener,
             gridProps: {
@@ -471,7 +483,7 @@ export const Customer = () => {
             field: "shop_keys",
             label: "Shop Keys",
             type: "checkbox",
-            columnOrder: 9,
+            columnOrder: 30,
             defaultState: false,
             changeListener: checkboxChangeListener,
             gridProps: {
@@ -719,7 +731,7 @@ export const Customer = () => {
     const requiredCustomerPrintOutstandingBalancesPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_PRINT_OUTSTANDING_BALANCES];
     const requiredWriteSalesRepPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION];
     const requiredWriteShopKeysPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SHOP_KEYS_PERMISSION];
-    const defaultFormState = { ...getDefaultFormFields(customerData), latitude: null, longitude: null };
+    const defaultFormState = { ...getDefaultFormFields(customerData), latitude: null, longitude: null, account: "" };
     const [formValues, setFormValues] = useState(defaultFormState);
     const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, true, requiredWritePermissions, null), ...getColumnDefs(customerData)];
 
@@ -1354,6 +1366,25 @@ export const Customer = () => {
                                                 </div>
                                             </Grid>
                                             <Grid xs={12} container sx={{mt:"40px"}} spacing={2}>
+                                            <Grid item xs={12} sm={6} md={3}>
+                                                <Controller
+                                                    render={({ field }) =>
+                                                        <TextField
+                                                            {...field}
+                                                            label={"Account ID"}
+                                                            name={"account"}
+                                                            variant="outlined"
+                                                            autoComplete="off"
+                                                            fullWidth
+                                                            type={"text"}
+                                                            autoFocus={true}
+                                                            required={true}
+                                                        />
+                                                    }
+                                                    name="account"
+                                                    control={control}
+                                                />
+                                            </Grid>
                                                 {/* <Grid item xs={12} sm={3}>
                                                     <Button variant='contained' onClick={handleOpenMapModal}>ADD MAP LOCATION</Button>
                                                 </Grid> */}
@@ -1400,8 +1431,8 @@ export const Customer = () => {
                                                     <FormLabel component="legend">{"Order Taking Days"}</FormLabel>
                                                     <FormGroup row>
                                                         {
-                                                            daysMap.map((value, index) => {
-                                                                return <FormControlLabel control={<Checkbox checked={orderTakingDays.includes(index)} name={"order_taking_days"} id={index} />} label={value} onChange={event => multiCheckboxChangeListener(event, orderTakingDays, setOrderTakingDays)} />
+                                                            daysMap?.map((value, index) => {
+                                                                return <FormControlLabel control={<Checkbox checked={(orderTakingDays || []).includes(index)} name={"order_taking_days"} id={index} />} label={value} onChange={event => multiCheckboxChangeListener(event, orderTakingDays, setOrderTakingDays)} />
                                                             })
                                                         }
                                                     </FormGroup>
@@ -1430,8 +1461,8 @@ export const Customer = () => {
                                                     <FormLabel component="legend">{"Payment Taking Days"}</FormLabel>
                                                     <FormGroup row>
                                                         {
-                                                            daysMap.map((value, index) => {
-                                                                return <FormControlLabel control={<Checkbox checked={paymentTakingDays.includes(index)} name={"payment_taking_days"} id={index} disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)} />} label={value} onChange={event => multiCheckboxChangeListener(event, paymentTakingDays, setPaymentTakingDays)} />
+                                                            daysMap?.map((value, index) => {
+                                                                return <FormControlLabel control={<Checkbox checked={Array.isArray(paymentTakingDays) && paymentTakingDays.includes(index)} name={"payment_taking_days"} id={index} disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)} />} label={value} onChange={event => multiCheckboxChangeListener(event, paymentTakingDays, setPaymentTakingDays)} />
                                                             })
                                                         }
                                                     </FormGroup>
