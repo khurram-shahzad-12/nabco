@@ -14,7 +14,7 @@ const SCHEMA_INVENTORY_SUPPLIER = new mongoose.Schema({
     phone: { type: String, trim: true, default: "", },
     mobile: { type: String, trim: true, default: "", },
     website: { type: String, trim: true, default: "", },
-    credit_limit: { type: Number, required: true, default: 0, min: 0, },
+    credit_limit: { type: Number, default: 0, min: 0, },
     payee_name: { type: String, trim: true, default: "", },
     hold: { type: Boolean, required: true, default: false, index: true, validate: { validator: value => [true, false].includes(value), },
     },

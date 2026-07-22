@@ -1365,26 +1365,25 @@ export const Customer = () => {
                                                     />
                                                 </div>
                                             </Grid>
-                                            <Grid xs={12} container sx={{mt:"40px"}} spacing={2}>
-                                            <Grid item xs={12} sm={6} md={3}>
-                                                <Controller
-                                                    render={({ field }) =>
-                                                        <TextField
-                                                            {...field}
-                                                            label={"Account ID"}
-                                                            name={"account"}
-                                                            variant="outlined"
-                                                            autoComplete="off"
-                                                            fullWidth
-                                                            type={"text"}
-                                                            autoFocus={true}
-                                                            required={true}
-                                                        />
-                                                    }
-                                                    name="account"
-                                                    control={control}
-                                                />
-                                            </Grid>
+                                            <Grid xs={12} container sx={{ mt: "40px" }} spacing={2}>
+                                                {editMode && (<Grid item xs={12} sm={6} md={3}>
+                                                    <Controller
+                                                        render={({ field }) =>
+                                                            <TextField
+                                                                {...field}
+                                                                label={"Account ID"}
+                                                                name={"account"}
+                                                                variant="outlined"
+                                                                autoComplete="off"
+                                                                fullWidth
+                                                                disabled
+                                                            />
+                                                        }
+                                                        name="account"
+                                                        control={control}
+                                                    />
+                                                </Grid>)}
+
                                                 {/* <Grid item xs={12} sm={3}>
                                                     <Button variant='contained' onClick={handleOpenMapModal}>ADD MAP LOCATION</Button>
                                                 </Grid> */}
