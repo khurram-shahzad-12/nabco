@@ -5,7 +5,7 @@ const createError = require('http-errors');
 
 const allowedModifiableProperties = [
     'legal_entity', 'customer_name', 'active', 'on_hold', 'shop_keys', 'tags', 'comments', 'contact_name', 'mobile', 'phone', 'email', 'address', 'city', 'postcode',
-    'cash_invoice', 'print_outstanding_balances', 'payment_term', 'order_taking_days', 'payment_taking_days', 'payment_contact_name', 'payment_contact_detail', 'payment_contact_method',
+    'cash_invoice', 'print_outstanding_balances', 'payment_term', 'order_taking_days', 'payment_taking_days', 'payment_contact_name', 'payment_contact_detail', 'payment_contact_method','account',
     'payment_method', 'do_not_call_for_payments', 'payment_comments', 'zones', 'delivery_order', 'sales_rep', 'tele_sales_rep', 'director_name', 'director_address', 'company_number', 'vat_number', 'business_timings','latitude', 'longitude','business_start_hour','business_close_hour',
 ];
 const buildQuery = (req) => {

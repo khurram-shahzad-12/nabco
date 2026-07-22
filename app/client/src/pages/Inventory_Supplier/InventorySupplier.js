@@ -14,7 +14,8 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange,
-    currentUserHasPermissions
+    currentUserHasPermissions,
+    handleNumberInputChange,
 } from "../../components/formFunctions/FormFunctions";
 
 import Card from "@mui/material/Card";
@@ -45,7 +46,16 @@ export const InventorySupplier = () => {
     const inputChangeListener = event => {
         handleInputChange(event, formValues, setFormValues)
     };
-
+    const numberInputChangeListener = (event) => {
+        handleNumberInputChange(event, formValues, setFormValues);
+    };
+        const holdCheckboxChangeListener = (event) => {
+        const { checked, name } = event.target;
+        setFormValues({
+            ...formValues,
+            [name]: checked
+        });
+    };
     const fetchAllInventorySuppliers = () => {
         fetchAllEntriesAndSetRowData(API_NAME, null, setSendingData, setRowData, setSnackState);
     };
@@ -82,6 +92,16 @@ export const InventorySupplier = () => {
 
     const supplierData = [
         {
+            field: "account",
+            label: "Account ID",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                required: true,
+                autoFocus: true
+            }
+        },
+        {
             field: "name",
             label: "Supplier",
             type: "textfield",
@@ -91,6 +111,92 @@ export const InventorySupplier = () => {
                 type: "text",
                 autoFocus: true
             }
+        },
+        {
+            field: "address",
+            label: "Address",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                multiline: true,
+                rows: 3
+            }
+        },
+        {
+            field: "postcode",
+            label: "Postcode",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "accounts_contact",
+            label: "Accounts Contact",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "account_email",
+            label: "Accounts Email",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "email"
+            }
+        },
+        {
+            field: "orders_contact",
+            label: "Orders Contact",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "orders_email",
+            label: "Orders Email",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "email"
+            }
+        },
+        {
+            field: "phone",
+            label: "Phone",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "mobile",
+            label: "Mobile",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "website",
+            label: "Website",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "credit_limit",
+            label: "Credit Limit",
+            type: "textfield",
+            changeListener: numberInputChangeListener,
+            textFieldProps: {
+                type: "number"
+            }
+        },
+        {
+            field: "payee_name",
+            label: "Payee Name",
+            type: "textfield",
+            changeListener: inputChangeListener
+        },
+        {
+            field: "hold",
+            label: "Hold",
+            type: "checkbox",
+            default: false,
+            changeListener: holdCheckboxChangeListener
         }
     ];
     const defaultFormState = getDefaultFormFields(supplierData);

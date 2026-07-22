@@ -133,6 +133,7 @@ const SCHEMA_CUSTOMER = new mongoose.Schema({
     longitude:           {type: String, trim: true, required: false},
     business_start_hour:  {type: [String], required:true, validate: {validator: (arr) => arr.length === 7, message: "must provide length for 7 days"},},
     business_close_hour:  {type: [String], required:true, validate: {validator: (arr) => arr.length === 7, message: "must provide length for 7 days"},},
+    account: { type: String, required: true, trim: true, unique: true, index: true, },
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,

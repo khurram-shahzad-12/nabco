@@ -2,7 +2,7 @@ const SERVICE_INVENTORY_SUPPLIER = require('./service');
 const validate = require('../../../utils/validate');
 const extractProperties = require('./../../../utils/extractProperties');
 
-const allowedModifiableProperties = ['name'];
+const allowedModifiableProperties = ['name','account', 'address', 'postcode', 'accounts_contact', 'account_email', 'orders_contact', 'orders_email', 'phone', 'mobile', 'website', 'credit_limit', 'payee_name', 'hold'];
 const buildQuery = (req) => {
     const QUERY = {};
     if (req.params.id && validate.id(req.params.id)) QUERY._id = req.params.id;
