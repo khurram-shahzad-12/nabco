@@ -1,6 +1,7 @@
 const createError = require('http-errors');
 const InventorySupplier = require('./model');
 const database = require('./../../../db/database');
+const COUNTER_SERVICE = require('../counter/service');
 
 const checkInventorySupplier = (query = {}) => {
     return database.exists(InventorySupplier, query);
@@ -9,6 +10,7 @@ const fetchInventorySupplier = (query = {}, projection = {}, sort = {name: 1}, l
     return database.find(InventorySupplier, query, projection, sort, limit);
 };
 const insertInventorySupplier = async (properties) => {
+    properties.account = await COUNTER_SERVICE.nextInventorySupplier();
     const doc = new InventorySupplier(properties);
     const error = await doc.validate();
     if (!error) return database.create(InventorySupplier, doc);

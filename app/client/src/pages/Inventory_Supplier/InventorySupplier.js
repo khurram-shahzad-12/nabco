@@ -17,7 +17,6 @@ import {
     currentUserHasPermissions,
     handleNumberInputChange,
 } from "../../components/formFunctions/FormFunctions";
-
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
@@ -61,11 +60,19 @@ export const InventorySupplier = () => {
     };
 
     const handleSubmit = event => {
-        handleDataSubmit(API_NAME, event, setSendingData, formValues, setFormValues, defaultFormState, setSnackState, fetchAllInventorySuppliers);
+        const formData = {
+            ...formValues,
+            hold: formValues.hold !== undefined ? formValues.hold : false
+        };
+        handleDataSubmit(API_NAME, event, setSendingData, formData, setFormValues, defaultFormState, setSnackState, fetchAllInventorySuppliers);
     };
 
     const handleEditSubmit = event => {
-        handleDataEditSubmit(API_NAME, event, setSendingData, setEditMode, formValues, setFormValues, defaultFormState, setSnackState, fetchAllInventorySuppliers);
+        const formData = {
+            ...formValues,
+            hold: formValues.hold !== undefined ? formValues.hold : false
+        };
+        handleDataEditSubmit(API_NAME, event, setSendingData, setEditMode, formData, setFormValues, defaultFormState, setSnackState, fetchAllInventorySuppliers);
     };
 
     const handleOpenDialog = () => {
@@ -97,8 +104,7 @@ export const InventorySupplier = () => {
             type: "textfield",
             changeListener: inputChangeListener,
             textFieldProps: {
-                required: true,
-                autoFocus: true
+                disabled: true
             }
         },
         {
@@ -199,7 +205,8 @@ export const InventorySupplier = () => {
             changeListener: holdCheckboxChangeListener
         }
     ];
-    const defaultFormState = getDefaultFormFields(supplierData);
+    const formFields = editMode ? supplierData : supplierData.filter(field => field.field !== "account")
+    const defaultFormState = {...getDefaultFormFields(supplierData), hold: false};
     const [formValues, setFormValues] = useState({...defaultFormState});
     const colDefs = [...getColumnDefs(supplierData), getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllInventorySuppliers, false, requiredWritePermissions, null)];
 
@@ -211,7 +218,7 @@ export const InventorySupplier = () => {
                 <Card className={cardStyles.popupFormCard}>
                 <CardContent>
                     <form onSubmit={editMode ? handleEditSubmit : handleSubmit}>
-                        {getGridFormInputFields(getInputFields(supplierData, formValues))}
+                        {getGridFormInputFields(getInputFields(formFields, formValues))}
                         <LoadingButton loading={sendingData} icon={editMode ? <EditIcon /> : <AddIcon />} buttonLabel={`${editMode ? "EDIT" : "ADD"} ITEM SUPPLIER`} disabled={sendingData} />
                         {editMode ? <Button variant="contained" color="error" onClick={disableEditMode} >CANCEL</Button> : ""}
                     </form>

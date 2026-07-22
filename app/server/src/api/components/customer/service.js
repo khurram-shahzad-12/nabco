@@ -3,6 +3,7 @@ const Customer = require('./model');
 const database = require('./../../../db/database');
 const axios = require("axios");
 const env = require("../../../config.env");
+const SERVICE_COUNTER = require("../counter/service");
 
 const upsertCustomerApp = async (resp) => {
     const deliveryDaysMap = resp.order_taking_days.map(day => day + 1);
@@ -35,6 +36,7 @@ const fetchCustomers = (query = {}, projection = {}, sort = {customer_name: 1}, 
     return database.find(Customer, query, projection, sort, limit);
 };
 const insertCustomer = async (properties) => {
+    properties.account = await SERVICE_COUNTER.nextCustomerAccount();
     let rep = properties.sales_rep;
     if(rep === undefined || rep === null || rep === "") {
         delete properties.sales_rep;
