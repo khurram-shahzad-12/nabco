@@ -52,11 +52,37 @@ const insertCustomer = async (properties) => {
     }
     throw new createError(500);
 };
+const checkAndUpdateCustomerHoldStatus = async (customerId) => {
+    const customer = await fetchOneCustomer({ _id: customerId }, ["credit_limit", "on_hold"]);
+    if (!customer) { throw new createError(404, "Customer not found"); }
+    const InvoiceService = require("../invoice/service")
+    const unpaidInvoices = await InvoiceService.fetchUnpaidInvoicesForCustomer(customerId);
+    const outstanding = unpaidInvoices.reduce((sum, invoice) => {
+        return sum + (invoice.total_incl_vat - invoice.totalPaid);
+    }, 0);
+    const creditLimit = Number(customer.credit_limit || 0);
+    if (creditLimit === 0) {
+        if (customer.on_hold) {
+            await database.findByIdAndUpdate(Customer, customerId, { on_hold: false });
+        }
+        return;
+    }
+    const shouldBeOnHold = outstanding > creditLimit;
+    if (shouldBeOnHold && !customer.on_hold) {
+        await database.findByIdAndUpdate(Customer, customerId, { on_hold: true });
+    } else if (!shouldBeOnHold && customer.on_hold) {
+        await database.findByIdAndUpdate(Customer, customerId, { on_hold: false });
+    } 
+    return { shouldBeOnHold, outstanding, creditLimit };
+};
 const updateCustomer = async (id, properties) => {
     const doc = new Customer(properties);
     const error = await doc.validate(Object.keys(properties));
     if (!error) {
         const resp = await database.findByIdAndUpdate(Customer, id, properties);
+        if (properties.hasOwnProperty('credit_limit')) {
+            await checkAndUpdateCustomerHoldStatus(id);
+        }
         if(env.NODE_ENV === 'production') {
             await upsertCustomerApp(resp);
         }
