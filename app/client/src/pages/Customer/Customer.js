@@ -131,6 +131,7 @@ export const Customer = () => {
             business_close_hour: "",
             latitude: null,
             longitude: null,
+            credit_limit: 0,
         }
     });
     const onSubmit = data => {
@@ -233,6 +234,7 @@ export const Customer = () => {
     const finaliseData = data => {
         return {
             ...data,
+            credit_limit: data.credit_limit || 0,
             tags: customerTags,
             order_taking_days: orderTakingDays,
             payment_taking_days: paymentTakingDays,
@@ -516,7 +518,7 @@ export const Customer = () => {
             field: "tags",
             label: "Tag(s)",
             type: "chips_dropdown",
-            columnOrder: 22,
+            columnOrder: 31,
             dropdownOptions: tagsData,
             dropdownNameField: "name",
             defaultState: [],
@@ -535,6 +537,26 @@ export const Customer = () => {
                 filterParams: {
                     columnName: "tags",
                     tagsList: tagsData
+                }
+            }
+        },
+        {
+            field: "credit_limit",
+            label: "Credit Limit",
+            type: "textfield",
+            columnOrder: 22,
+            defaultState: 0,
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "number"
+            },
+            gridProps: {
+                filter: "agNumberColumnFilter",
+                valueFormatter: params => {
+                    if (params.value === null || params.value === undefined || params.value === "") {
+                        return "";
+                    }
+                    return `£${Number(params.value).toFixed(2)}`;
                 }
             }
         },
@@ -731,7 +753,7 @@ export const Customer = () => {
     const requiredCustomerPrintOutstandingBalancesPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_PRINT_OUTSTANDING_BALANCES];
     const requiredWriteSalesRepPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION];
     const requiredWriteShopKeysPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SHOP_KEYS_PERMISSION];
-    const defaultFormState = { ...getDefaultFormFields(customerData), latitude: null, longitude: null, account: "" };
+    const defaultFormState = { ...getDefaultFormFields(customerData), latitude: null, longitude: null, account: "", credit_limit: 0 };
     const [formValues, setFormValues] = useState(defaultFormState);
     const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, true, requiredWritePermissions, null), ...getColumnDefs(customerData)];
 
@@ -1383,6 +1405,28 @@ export const Customer = () => {
                                                         control={control}
                                                     />
                                                 </Grid>)}
+                                                <Grid item xs={12} sm={6} md={3}>
+                                                    <Controller
+                                                        name="credit_limit"
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <TextField
+                                                                {...field}
+                                                                label="Credit Limit"
+                                                                variant="outlined"
+                                                                autoComplete="off"
+                                                                fullWidth
+                                                                type="number"
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    // If empty string, set to 0, otherwise convert to number
+                                                                    field.onChange(value === '' ? 0 : Number(value));
+                                                                }}
+                                                                value={field.value || 0}
+                                                            />
+                                                        )}
+                                                    />
+                                                </Grid>
 
                                                 {/* <Grid item xs={12} sm={3}>
                                                     <Button variant='contained' onClick={handleOpenMapModal}>ADD MAP LOCATION</Button>

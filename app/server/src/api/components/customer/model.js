@@ -46,6 +46,9 @@ const verifyPaymentTerm = async (value) => {
     const lookup = await SERVICE_PAYMENT_TERM.checkPaymentTerm({_id: paymentTermID});
     return (lookup !== null);
 };
+const verifyCreditLimit = (value) => {
+    return typeof value === 'number' && value >= 0;
+};
 
 const SCHEMA_CUSTOMER = new mongoose.Schema({
     legal_entity:  {type: String, required: false, trim: true},
@@ -134,6 +137,15 @@ const SCHEMA_CUSTOMER = new mongoose.Schema({
     business_start_hour:  {type: [String], required:true, validate: {validator: (arr) => arr.length === 7, message: "must provide length for 7 days"},},
     business_close_hour:  {type: [String], required:true, validate: {validator: (arr) => arr.length === 7, message: "must provide length for 7 days"},},
     account: { type: String, required: true, trim: true, unique: true, index: true, },
+    credit_limit: {
+        type: Number,
+        default: 0,
+        min: 0,
+        validate: {
+            validator: verifyCreditLimit,
+            message: "Credit limit must be a non-negative number"
+        }
+    },
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,

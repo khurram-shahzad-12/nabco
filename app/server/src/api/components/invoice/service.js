@@ -39,9 +39,10 @@ const insertInvoice = async (properties, userPermissions) => {
     if (error) {
         throw new createError(500);
     }
-    if(!await SERVICE_CUSTOMER.isCustomerActive(doc.customer) || await SERVICE_CUSTOMER.isCustomerOnHold(doc.customer)) {
-        throw new createError(500);
+    if(!await SERVICE_CUSTOMER.isCustomerActive(doc.customer)) {
+        throw new createError(400, 'Customer is inactive');
     }
+    await checkCustomerCreditLimit(doc.customer)
     doc.invoice_date = moment(doc.invoice_date).format('YYYY-MM-DD');
     doc.ot_date = moment(doc.ot_date).format('YYYY-MM-DD');
     doc.sale_number = await generateInvoiceID();
@@ -150,6 +151,40 @@ const updateInvoicesAfterWeightChange = async (updatedItem) => {
         await database.findByIdAndUpdateNoValidate(Invoice, invoice._id.toString(), invoice);
     }
 };
+const updateCustomerHoldStatusAfterPayment = async (customerId) => {
+    try {
+        const customer = await SERVICE_CUSTOMER.fetchOneCustomer({ _id: customerId }, ["credit_limit", "on_hold"]);
+        if (!customer) { return; }
+        const unpaidInvoices = await fetchUnpaidInvoicesForCustomer(customerId);
+        const outstanding = unpaidInvoices.reduce((sum, invoice) => {
+            return sum + (invoice.total_incl_vat - invoice.totalPaid);
+        }, 0);
+        const creditLimit = Number(customer.credit_limit || 0);
+        if (creditLimit === 0) {
+            if (customer.on_hold) {
+                await SERVICE_CUSTOMER.updateCustomer(customerId, {
+                    on_hold: false
+                });
+                console.log(`Customer ${customerId} hold released - credit limit is 0`);
+            }
+            return;
+        }
+        const shouldBeOnHold = outstanding > creditLimit;
+        if (shouldBeOnHold && !customer.on_hold) {
+            await SERVICE_CUSTOMER.updateCustomer(customerId, {
+                on_hold: true
+            });
+            console.log(`Customer ${customerId} put on hold - outstanding £${outstanding.toFixed(2)} exceeds credit limit £${creditLimit.toFixed(2)}`);
+        } else if (!shouldBeOnHold && customer.on_hold) {
+            await SERVICE_CUSTOMER.updateCustomer(customerId, {
+                on_hold: false
+            });
+            console.log(`Customer ${customerId} hold released - outstanding £${outstanding.toFixed(2)} within credit limit £${creditLimit.toFixed(2)}`);
+        }
+    } catch (error) {
+        console.error(`Error updating customer hold status after payment: ${error.message}`);
+    }
+};
 const updatePayments = async (id, properties) => {
     const fullInvoice = await database.findOne(Invoice, {_id: id});
     let total = 0;
@@ -158,7 +193,11 @@ const updatePayments = async (id, properties) => {
     });
     properties.paid = Number(total.toFixed(2)) >= fullInvoice.total_incl_vat;
 
-    return database.findByIdAndUpdate(Invoice, id, properties);
+    const updatedInvoice = await database.findByIdAndUpdate(Invoice, id, properties);
+    if (updatedInvoice && updatedInvoice.customer) {
+        await updateCustomerHoldStatusAfterPayment(updatedInvoice.customer);
+    }
+    return updatedInvoice
 };
 const deleteInvoice = (id) => {
     return database.findByIdAndDelete(Invoice, id);
@@ -362,6 +401,40 @@ const updateOrderPriority = (updateValues) => {
     return Invoice.bulkWrite(bulkops); 
 }
 
+const checkCustomerCreditLimit = async (customerId) => {
+    const customer = await SERVICE_CUSTOMER.fetchOneCustomer({ _id: customerId },["credit_limit", "on_hold"]);
+    if (!customer) { throw new createError(404, "Customer not found"); }
+    const unpaidInvoices = await fetchUnpaidInvoicesForCustomer(customerId);
+    const outstanding = unpaidInvoices.reduce((sum, invoice) => {
+        return sum + (invoice.total_incl_vat - invoice.totalPaid);
+    }, 0);
+    const creditLimit = Number(customer.credit_limit || 0);
+    if (creditLimit === 0) {
+        if (customer.on_hold) {
+            await SERVICE_CUSTOMER.updateCustomer(customerId, {
+                on_hold: false
+            });
+        }
+        return;
+    }
+    if (outstanding > creditLimit) {
+        if (!customer.on_hold) {
+            await SERVICE_CUSTOMER.updateCustomer(customerId, {
+                on_hold: true
+            });
+        }
+        throw new createError(
+            400,
+            `Credit limit exceeded. Outstanding balance is £${outstanding.toFixed(2)} and the customer's credit limit is £${creditLimit.toFixed(2)}.`
+        );
+    }
+    if (customer.on_hold) {
+        await SERVICE_CUSTOMER.updateCustomer(customerId, {
+            on_hold: false
+        });
+    }
+};
+
 
 module.exports = {
     checkInvoice,
@@ -382,6 +455,7 @@ module.exports = {
     updateInvoicePickedStatus,
     getOrderForRoute,
     updateOrderPriority,
+    checkCustomerCreditLimit,
 };
 
 // exports.updateInvoicesAfterPriceChange = updateInvoicesAfterPriceChange;
