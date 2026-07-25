@@ -898,27 +898,31 @@ const generateCustomerStatementPDF = async (invoiceIDList) => {
     const customerStatementPage = [
         {text: "Customer Statement\n\n", alignment: 'center',fontSize:18, bold:true},
         {columns: [
-                {width: "40%",stack: [
-                     {
-                        text: getLatestInvoiceConfig().addressLines.join("\n"),
-                        },{text: "\n\n\n"},
-                        [{text: CUSTOMER.customer_name}],
-                        [{text: CUSTOMER.address}],
-                        [{text: CUSTOMER.city}],
-                        [{text: CUSTOMER.postcode}],
-                        [{text: `Tel: ${CUSTOMER.phone}`}],                       
+                {text: '', width: '*'},
+                {width: "70%",stack: [
+                    {image: currentConfig.logo, width: 120, height: 65},{text: "\n"},
+             
+                    [{text: `Date: ${DATE.format(momentFormat)}`,decoration:"underline", bold:true, margin: [20, 0, 0, 0]}],{text: "\n"},
+                    [{ text: CUSTOMER.customer_name, margin: [20, 0, 0, 0]}],
+                    [{ text: CUSTOMER.address, margin: [20, 0, 0, 0]}],
+                    [{ text: CUSTOMER.city, margin: [20, 0, 0, 0]}],
+                    [{ text: CUSTOMER.postcode,margin: [20, 0, 0, 0] }],
+                    [{ text: `Tel: ${CUSTOMER.phone}`,margin: [20, 0, 0, 0] }],
                     ]
                 },
-                {text: '', width: '*'},
-                {width: "40%",stack: [
-                    {image: currentConfig.logo, width: 120, height: 65},{text: "\n"},
-                    [{text: `Date: ${DATE.format(momentFormat)}`,decoration:"underline", bold:true}],{text: "\n"},
+            {
+                width: "30%", stack: [
+                    {
+                        text: getLatestInvoiceConfig().addressLines.join("\n"),
+                    }, { text: "\n" },
+                  
+                   
                     [{text: "Our Bank Details",fontSize:12, bold:true,decoration:"underline"}],
                     [{text: "Account Name: XXX"}],
                     [{text: "Account Number: 000"}],
                     [{text: "Sort Code: 000"}],
-                    ]
-                }
+                ]
+            },
             ]
         },
         {text: "\n"}
