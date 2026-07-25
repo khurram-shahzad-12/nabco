@@ -145,23 +145,28 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
     const getInvoiceDefinition = invoice => {
         const currentInvoiceConfigData = getInvoiceConfigForDate(invoice.invoice_date);
         return {
-            pageMargins: [20, 90, 20, 50],
+            pageMargins: [20, 50, 20, 50],
             defaultStyle: {font: 'Roboto', fontSize: 10},
-            header: {
-                style: 'header',
-                columns: [
-                    {image: currentConfig.logo, width: 140, height: 75},
-                    {text: invoice.in_person ? "COLLECTION" : "DELIVERY", width: '*', bold: true, alignment: 'center'},
-                    {
-                        text: currentInvoiceConfigData.addressLines.join("\n"), width: '40%',
-                    },
-                ],
-            },
+            // header: {
+            //     style: 'header',
+            //     columns: [
+            //         {image: currentConfig.logo, width: 140, height: 75},
+            //         {text: invoice.in_person ? "COLLECTION" : "DELIVERY", width: '*', bold: true, alignment: 'center'},
+            //         {
+            //             text: currentInvoiceConfigData.addressLines.join("\n"), width: '40%',
+            //         },
+            //     ],
+            // },
+             header: {margin: [20, 10, 20, 10], text: invoice.in_person ? "COLLECTION" : "DELIVERY", width: '*', bold: true, alignment: 'center', fontSize:16 },
             footer: (currentPage, pageCount) => footerFunction(currentPage, pageCount, invoice.customer, invoice.cash_invoice, currentInvoiceConfigData.footer),
             content: [
-                '\n\n',
                 {
-                    columns: [
+                    margin: [0, 0, 0, 15],
+                    columns:[{image: currentConfig.logo, fit: [140, 75], width: "70%", margin: [20, 0, 0, 0]},{text: currentInvoiceConfigData.addressLines.join("\n"), width: '30%'}]
+                },
+                {text: Customers[invoice.customer].payment_term ? `Payment Term: ${PaymentTerms[Customers[invoice.customer].payment_term]?.name}\n` : "Payment Term: PAYMENT ON DELIVERY", fontSize: 12, bold: true, width: "*", alignment:'center', decoration: "underline"},
+                { margin: [20, 15, 0, 0], 
+                columns: [
                         {
                             text: invoice.cash_invoice ? '' : [
                                 `${Customers[invoice.customer].legal_entity}\n`,
@@ -172,9 +177,9 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
                                 `${Customers[invoice.customer].city}\n`,
                                 `${Customers[invoice.customer].postcode}\n`,
                             ],
-                            width: '40%',
+                            width: '70%',
                         },
-                        {text: Customers[invoice.customer].payment_term ? `Payment Term: ${PaymentTerms[Customers[invoice.customer].payment_term]?.name}\n` : "Payment Term: PAYMENT ON DELIVERY", fontSize: 12, bold: true, width: "35%"},
+                        // {text: Customers[invoice.customer].payment_term ? `Payment Term: ${PaymentTerms[Customers[invoice.customer].payment_term]?.name}\n` : "Payment Term: PAYMENT ON DELIVERY", fontSize: 12, bold: true, width: "35%"},
                         {
                             text: [
                                 {text: invoice.cash_invoice ? `CASH INVOICE${reprint ? " - REPRINT" : ""}\n` : `INVOICE${reprint ? " - REPRINT" : ""}\n`, fontSize: 12, bold: true},
@@ -182,7 +187,7 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
                                 `Date: ${moment(invoice.invoice_date).format(momentFormat)}\n`,
                                 `${invoice.created_by === 'OrderLion App' ? 'Order By: OrderLion App': ''}\n`
                             ],
-                            width: '25%',
+                            width: '30%',
                         },
                     ],
                 },  
@@ -909,9 +914,9 @@ const generateCustomerStatementPDF = async (invoiceIDList) => {
                     {image: currentConfig.logo, width: 120, height: 65},{text: "\n"},
                     [{text: `Date: ${DATE.format(momentFormat)}`,decoration:"underline", bold:true}],{text: "\n"},
                     [{text: "Our Bank Details",fontSize:12, bold:true,decoration:"underline"}],
-                    [{text: "Account Name: Spice Direct Wholesale LTD"}],
-                    [{text: "Account Number: 30845944"}],
-                    [{text: "Sort Code: 04-00-03"}],
+                    [{text: "Account Name: XXX"}],
+                    [{text: "Account Number: 000"}],
+                    [{text: "Sort Code: 000"}],
                     ]
                 }
             ]
