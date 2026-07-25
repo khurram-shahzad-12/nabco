@@ -112,7 +112,7 @@ const Quotations = () => {
     { headerName: "Total (Excl VAT)", field: "total_no_vat", width: 150 },
     { headerName: "VAT", field: "vat_total", width: 120 },
     { headerName: "Total (Incl VAT)", field: "total_incl_vat", width: 160 },
-    { headerName: "Created Date", field: "createdAt", width: 180, valueFormatter: (params) => new Date(params.value).toLocaleDateString() },
+    { headerName: "Created Date", field: "createdAt", width: 180, valueFormatter: (params) => new Date(params.value).toLocaleDateString("en-GB") },
     { headerName: "Actions", field: "id", width: 120, cellRenderer: ActionCellRenderer, sortable: false, filter: false }
   ];
   const columnDefs = [checkboxColumnDef, ...colFields];
