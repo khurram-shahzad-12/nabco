@@ -2,7 +2,7 @@ const SERVICE_INVENTORY = require('./service');
 const validate = require('../../../utils/validate');
 const extractProperties = require('./../../../utils/extractProperties');
 
-const allowedModifiableProperties = ['name', 'active', 'category', 'tags', 'vat', 'quantity', 'alert_quantity', 'cost_price', 'min_sale_price',
+const allowedModifiableProperties = ['name', 'active', 'category', 'tags', 'vat', 'quantity', 'alert_quantity', 'cost_price', 'min_sale_price', 'color', 'ral', 'size',
     'default_sale_price', 'collection_price', 'weight_grams', 'weight_kg', 'supplier1', 'supplier2', 'supplier3', 'item_image', 'updateCustomerPrices','aisle', 'location'];
 const buildQuery = (req) => {
     const QUERY = {};

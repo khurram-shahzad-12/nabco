@@ -603,7 +603,42 @@ export const Inventory = () => {
             textFieldProps: {
                 type: "text",
             }
-        }
+        }, {
+            field: "color",
+            label: "Color",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            },
+            gridProps: {
+                width: 120,
+            }
+        },
+        {
+            field: "ral",
+            label: "RAL",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            },
+            gridProps: {
+                width: 100,
+            }
+        },
+        {
+            field: "size",
+            label: "Size",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            },
+            gridProps: {
+                width: 150,
+            }
+        },
     ];
 
     const checkboxColumnDef = { headerName: "", checkboxSelection: true, headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly:true, filter: false, minWidth: 60, maxWidth: 60 }
