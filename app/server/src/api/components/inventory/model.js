@@ -76,6 +76,10 @@ const SCHEMA_INVENTORY = new mongoose.Schema({
     item_image:         {type: String},
     aisle:              {type:String},
     location:           {type:String},
+    color:               { type: String, default: "", trim: true },
+    ral:                 { type: String, default: "", trim: true },
+    size:                { type: String, default: "", trim: true },
+
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,
