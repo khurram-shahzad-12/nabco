@@ -65,6 +65,7 @@ const SCHEMA_INVOICE = new mongoose.Schema({
     order_app_id:     {type: String, default: ''},
     order_number:     {type: String, default: ''},
     customer_sales_rep: {type:mongoose.Schema.Types.ObjectId, ref: 'CustomerSalesRep', validate: {validator: verifySalesRep},},
+    quotationNo: {type: String, trim: true}
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,

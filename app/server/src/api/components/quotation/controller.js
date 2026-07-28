@@ -25,9 +25,27 @@ const updateQuotation = async (req, res, next) => {
         res.status(200).json(await QUOTATION_SERVICE.updateQuotation(id, quotation));
     } catch (e) { next(e); }
 }
+const convertQuotationToInvoice = async (req, res, next) => {
+    try {
+        const { quotationId, customerId, createdBy } = req.body;
+        const user = req.user;
+        
+        const result = await QUOTATION_SERVICE.convertQuotationToInvoice(
+            quotationId, 
+            customerId, 
+            createdBy || user?.name || 'system',
+            user?.permissions || []
+        );
+        
+        res.status(201).json(result);
+    } catch (e) { 
+        next(e); 
+    }
+};
 module.exports = {
    createNewQuotation,
    getAllQuotations,
    deleteQuotation,
    updateQuotation,
+   convertQuotationToInvoice,
 };
