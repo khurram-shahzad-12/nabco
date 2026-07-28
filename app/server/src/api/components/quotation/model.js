@@ -42,6 +42,8 @@ const QUOTATION_SCHEMA = new mongoose.Schema({
     vat_total: { type: Number, required: true },
     total_incl_vat: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
+    convertedToInvoice: {type: Boolean, default: false},
+    invoiceNumber: {type: Number, default: null}
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,

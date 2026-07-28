@@ -11,4 +11,5 @@ router.post('/',writeQuotationCheck ,controller.createNewQuotation);
 router.get('/', readQuotationCheck , controller.getAllQuotations);
 router.put('/:id', writeQuotationCheck ,controller.updateQuotation);
 router.delete('/:id', writeQuotationCheck ,controller.deleteQuotation);
+router.post('/converttoinvoice', writeQuotationCheck, controller.convertQuotationToInvoice);
 module.exports = router;
