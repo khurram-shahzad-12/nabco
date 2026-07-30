@@ -135,6 +135,7 @@ export const menuItems = [
 		requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION],
 		subItems: [
 			{ name: "ManageUsers", label:'Manage Users', icon: <PersonIcon />, requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION] },
+			{ name: "ManageChatUsers", label:'Manage Chat Users', icon: <PersonIcon />, requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION] },
 			// { name: "Manage Users", icon: <GroupAddIcon /> },
 			// { name: "Manage User Roles", icon: <SupervisedUserCircleIcon /> },
 			// { name: "Backup", icon: <BackupIcon /> }
