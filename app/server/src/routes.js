@@ -36,5 +36,6 @@ app.use('/lead', require('./api/components/lead/routes'));
 app.use('/activities', require('./api/components/activity/routes'));
 app.use('/opportunities', require('./api/components/opportunity/routes'));
 app.use('/quotation', require('./api/components/quotation/routes'));
+app.use('/chatuser', require("./api/components/chat_users/route"));
 
 module.exports = app;

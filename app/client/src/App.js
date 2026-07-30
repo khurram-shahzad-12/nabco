@@ -37,6 +37,7 @@ import OrderMap from "./pages/Order_Map/OrderMap";
 import SalesTracker from "./pages/Sales_Tracker/SalesTracker";
 import CRMTracker from "./pages/CRMTracker/CRMTracker";
 import CRMManagement from "./pages/CRM/CRMManagement";
+import { ChatUser } from "./pages/Users/ChatUsers";
 
 let initialPreferences = JSON.parse(localStorage.getItem("preferences"));
 
@@ -103,6 +104,7 @@ export default function App() {
 			<Route key={Math.random()} path={`/Reporting/SalesTracker`} element={getNavBarComponent(<SalesTracker />)} />,
 			<Route key={Math.random()} path={`/Reporting/CRMTracker`} element={getNavBarComponent(<CRMTracker />)} />,
 			<Route key={Math.random()} path={`/Admin/${encodeURIComponent("ManageUsers")}`} element={getNavBarComponent(<Users />)} />,
+			<Route key={Math.random()} path={`/Admin/${encodeURIComponent("ManageChatUsers")}`} element={getNavBarComponent(<ChatUser />)} />,
 		];
 	};
 
