@@ -36,14 +36,16 @@ const QUOTATION_SCHEMA = new mongoose.Schema({
         rate: { type: Number, required: true, },
         tax: { type: Number, default: 0 },
         default_sale_price: {type: Number, default: 0},
-        vat: {type: mongoose.Schema.Types.ObjectId, ref: 'VAT',  validate: {validator: verifyVAT}}
+        vat: {type: mongoose.Schema.Types.ObjectId, ref: 'VAT',  validate: {validator: verifyVAT}},
+        list_price:         {type: Number, default: 0, min: 0},
+        discount_percent:   {type: Number, default: 0, min: 0, max: 100},
     }],
     total_no_vat: { type: Number, required: true },
     vat_total: { type: Number, required: true },
     total_incl_vat: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
     convertedToInvoice: {type: Boolean, default: false},
-    invoiceNumber: {type: Number, default: null}
+    invoiceNumber: {type: Number, default: null},
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,

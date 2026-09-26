@@ -3,7 +3,7 @@ import displaySnackState from "../customisedSnackBar/DisplaySnackState";
 import {URL_API, URL_ROOT} from "../../configs/config";
 import {Grid, TextField} from "@mui/material";
 import React from "react";
-import {btnActionCellRenderer} from "../cellRenderers/ActionCellRenderer";
+import {BtnActionCellRenderer} from "../cellRenderers/ActionCellRenderer";
 import MenuItem from "@mui/material/MenuItem";
 import Autocomplete from "@mui/material/Autocomplete";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -16,15 +16,7 @@ import DatePicker from "@mui/lab/DatePicker";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import DeliveryDayZonePicker from "../DeliveryDayZonePicker/DeliveryDayZonePicker";
 import { v4 as uuidv4 } from 'uuid';
-import jwtDecode from "jwt-decode";
-import Cookies from 'universal-cookie';
 import moment from "moment";
-
-const currentUserHasPermissions = (targetPermissions) => {
-    const token = new Cookies().get("apiToken");
-    const currentUserPermissions = jwtDecode(token).permissions;
-    return currentUserPermissions.some(item => targetPermissions.includes(item));
-};
 
 const defaultColDef = {
     resizable: true,
@@ -438,7 +430,7 @@ const getActionColumnDef = (setEditMode, setFormValues, API_NAME, displaySnackSt
         headerName: "Action",
         floatingFilter: false,
         filter: false,
-        cellRenderer: btnActionCellRenderer,
+        cellRenderer: BtnActionCellRenderer,
         cellRendererParams: {
             setEditModeCB: setEditMode,
             setFormValuesCB: setFormValues,
@@ -643,7 +635,6 @@ const defaultInvoiceItemEntry = () => ({
 const momentFormat = "YYYY-MM-DD";
 
 export {
-    currentUserHasPermissions,
     defaultColDef,
     defaultLoadedFieldData,
     defaultSnackState,

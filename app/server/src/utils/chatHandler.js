@@ -1,13 +1,12 @@
-const ChatUser = require("../api/components/chat_users/model");
+const User = require("../api/components/authentication/user/model");
 const MESSAGE_SERVICE = require("../api/components/messages/service");
 
 class ChatHandler {
-    constructor(io, userSockets, userMap, env, getUserNameFromAuth0AndStoreInMap) {
+    constructor(io, userSockets, userMap, env) {
         this.io = io;
         this.userSockets = userSockets;
         this.userMap = userMap;
         this.env = env;
-        this.getUserNameFromAuth0AndStoreInMap = getUserNameFromAuth0AndStoreInMap
     }
     updateActiveUsers() {
         const activeUserList = Array.from(this.userSockets.keys()).map(userID => ({
@@ -21,9 +20,9 @@ class ChatHandler {
             socket.userId = userID;
             if(!this.userSockets.has(userID)){this.userSockets.set(userID, new Set())};
             this.userSockets.get(userID).add(socket);
-            const user_name = this.userMap[userID];
-            if(!this.userMap[userID]){this.getUserNameFromAuth0AndStoreInMap(userToken)}
-            await ChatUser.findOneAndUpdate({auth0Id: userID},{auth0Id: userID, online: true, last_seen: new Date(), user_name}, {upsert: true});
+            const user = await User.findById(userID).select('firstName lastName email online lastSeen');
+            if(user) {user.online = true; user.lastSeen = new Date(); await user.save(); this.userMap[userID] = user.getDisplayName();}
+            
             const offlineMessages = await MESSAGE_SERVICE.getOfflineMessages(userID);
             if(offlineMessages.length) {
                 const userSocket = this.userSockets.get(userID);
@@ -35,7 +34,8 @@ class ChatHandler {
                 const messageIds = offlineMessages.map(m => m._id);
                 await MESSAGE_SERVICE.offlineDeliveredMessages(messageIds);
                 offlineMessages.forEach(msg => {
-                    const senderSocketSet = this.userSockets.get(msg.senderId);
+                    const senderId = msg.senderId.toString();
+                    const senderSocketSet = this.userSockets.get(senderId);
                     if(senderSocketSet) {
                         senderSocketSet.forEach(sock => {
                             sock.emit("MESSAGE_DELIVERED", msg._id);
@@ -108,7 +108,7 @@ class ChatHandler {
                     userSocketSet.delete(socket);
                     if(userSocketSet.size === 0){
                         this.userSockets.delete(userId);
-                        await ChatUser.findOneAndUpdate({auth0Id: userId}, {online: false, last_seen: new Date()})
+                        await User.findByIdAndUpdate(userId, {online: false, last_seen: new Date()})
                     }
                 }
             }
@@ -117,9 +117,24 @@ class ChatHandler {
     }
     async handleGetAllUsers(socket) {
         try {
-            const users = await ChatUser.find({});
-            socket.emit("ALL_USERS", users);
-        } catch (error) { console.log("Error in handleGetAllUsers", error)}
+            const users = await User.find({})
+                .select('firstName lastName email online lastSeen role')
+                .populate('role', 'name displayName');
+            
+            // Format users for chat
+            const formattedUsers = users.map(user => ({
+                id: user._id,
+                user_name: user.getDisplayName(),
+                online: user.online || false,
+                last_seen: user.lastSeen,
+                role: user.role?.name || 'user',
+                email: user.email
+            }));
+            
+            socket.emit("ALL_USERS", formattedUsers);
+        } catch (error) {
+            console.log("Error in handleGetAllUsers", error);
+        }
     }
     async handleOfflineDelivered (messageIds) {
         try {
@@ -134,7 +149,7 @@ class ChatHandler {
                 if(userSocketSet) {
                     userSocketSet.clear();
                     this.userSockets.delete(userId);
-                     await ChatUser.findOneAndUpdate({auth0Id: userId}, {online: false, last_seen: new Date()})
+                     await User.findByIdAndUpdate(userId, {online: false, last_seen: new Date()})
                 }
             }
             this.updateActiveUsers();

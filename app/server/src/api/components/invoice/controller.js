@@ -7,7 +7,7 @@ const extractProperties = require('./../../../utils/extractProperties');
 
 const allowedModifiableProperties = [
     'created_by', 'invoice_date', 'ot_date', 'customer', 'cash_invoice', 'payments', 'remarks', 'driverNotes', 'items', 'in_person',
-    'printed', 'picked', 'customer_sales_rep',
+    'printed', 'picked', 'customer_sales_rep','list_price','discount_percent'
 ];
 const allowedPaymentModifiableProperties = ['payments'];
 
@@ -55,7 +55,7 @@ const buildCustomerAccountsQuery = (req) => {
 const getInvoices = async (req, res, next) => {
     try {
         let projection = [];
-        if(!req.auth.payload.permissions.includes(env.READ_INVOICE_MARGINS_CLAIM)) {
+        if(!req.user?.permissions || [].includes(env.READ_INVOICE_MARGINS_CLAIM)) {
             projection.push('-profit');
         }
         res.status(200).json(await SERVICE_INVOICE.fetchInvoices(buildQuery(req), projection));
@@ -64,7 +64,7 @@ const getInvoices = async (req, res, next) => {
 
 const addInvoice = async (req, res, next) => {
     try {
-        res.status(201).json(await SERVICE_INVOICE.insertInvoice(extractProperties(req.body, allowedModifiableProperties), req.auth.payload.permissions));
+        res.status(201).json(await SERVICE_INVOICE.insertInvoice(extractProperties(req.body, allowedModifiableProperties), req.user?.permissions || []));
     } catch (e) {next(e);}
 };
 const recordPayments = async (req, res, next) => {
@@ -75,7 +75,7 @@ const recordPayments = async (req, res, next) => {
 const updateInvoice = async (req, res, next) => {
     try {
         res.status(200).json(await SERVICE_INVOICE.updateInvoice(validate.id(req.params.id),
-            extractProperties(req.body, allowedModifiableProperties), req.auth.payload.permissions)
+            extractProperties(req.body, allowedModifiableProperties), req.user?.permissions || [])
         );
     } catch (e) {next(e);}
 };
@@ -118,7 +118,7 @@ const getCustomerAccountsData = async (req, res, next) => {
         res.status(200).json(await SERVICE_INVOICE.fetchCustomerAccountsData(
             moment(req.query.start).format('YYYY-MM-DD'),
             moment(req.query.end).format('YYYY-MM-DD'),
-            req.auth.payload.permissions
+            req.user?.permissions || []
         ));
     } catch (e) {next(e);}
 };

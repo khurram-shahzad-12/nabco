@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const MODEL_NAME = 'Messages';
 const COLLECTION_NAME = 'messages';
 
-const SCHEMA_CUSTOMER = new mongoose.Schema({
-    senderId:  {type: String, required: true, index: true},
-    receiverId:  {type: String, required: true, index: true},
+const SCHEMA_MESSAGE = new mongoose.Schema({
+    senderId:  {type: mongoose.Schema.Types.ObjectId, required: true, index: true, ref: 'User'},
+    receiverId:  {type: mongoose.Schema.Types.ObjectId, required: true, index: true, ref: 'User'},
     message: {type: String, required: true},
     replyTo: {type: mongoose.Schema.Types.ObjectId , ref:'Messages' ,default:null},
     delivered:        {type: Boolean, default: false},
@@ -15,10 +15,26 @@ const SCHEMA_CUSTOMER = new mongoose.Schema({
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true }
 });
-SCHEMA_CUSTOMER.index({ senderId: 1, receiverId: 1, createdAt: -1 });
-SCHEMA_CUSTOMER.index({ receiverId: 1, seen: 1 });
-SCHEMA_CUSTOMER.index({ receiverId: 1, delivered: 1 });
+SCHEMA_MESSAGE.index({ senderId: 1, receiverId: 1, createdAt: -1 });
+SCHEMA_MESSAGE.index({ receiverId: 1, seen: 1 });
+SCHEMA_MESSAGE.index({ receiverId: 1, delivered: 1 });
 
-const Messages = mongoose.model(MODEL_NAME, SCHEMA_CUSTOMER);
+SCHEMA_MESSAGE.virtual('sender', {
+    ref: 'User',
+    localField: 'senderId',
+    foreignField: '_id',
+    justOne: true
+});
+
+SCHEMA_MESSAGE.virtual('receiver', {
+    ref: 'User',
+    localField: 'receiverId',
+    foreignField: '_id',
+    justOne: true
+});
+
+const Messages = mongoose.model(MODEL_NAME, SCHEMA_MESSAGE);
 module.exports = Messages;

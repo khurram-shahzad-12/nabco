@@ -13,9 +13,8 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange,
-    currentUserHasPermissions,
 } from "../../components/formFunctions/FormFunctions";
-
+import { useAuth } from '../../contexts/AuthContext';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
@@ -33,6 +32,7 @@ import _ from "lodash";
 const API_NAME = '/customerGroups';
 
 export const CustomerGroups = () => {
+    const {hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState({open: false});
@@ -41,8 +41,8 @@ export const CustomerGroups = () => {
     const [customerData, setCustomerData] = useState(defaultLoadedFieldData);
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [rowData, setRowData] = useState([]);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_CUSTOMER_GROUPS];
-    const requiredDeletePermissions = [process.env.REACT_APP_WRITE_CUSTOMER_GROUPS];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_CUSTOMER_GROUPS;
+    const requiredDeletePermissions = process.env.REACT_APP_WRITE_CUSTOMER_GROUPS;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -222,7 +222,7 @@ export const CustomerGroups = () => {
 
     const defaultFormState = getDefaultFormFields(itemData);
     const [formValues, setFormValues] = useState({...defaultFormState});
-    const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, !currentUserHasPermissions(requiredDeletePermissions), requiredWritePermissions), ...getColumnDefs(itemData)];
+    const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, !hasPermission(requiredDeletePermissions), requiredWritePermissions), ...getColumnDefs(itemData)];
 
     return <div style={{height: "90%"}}>
         <CustomisedSnackBar {...snackState} setClosed={setSnackState}/>
@@ -244,7 +244,7 @@ export const CustomerGroups = () => {
                 </Card>
             </div>
         </Dialog>
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Customer Group</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Customer Group</Button>
         <Button variant="contained" onClick={fetchAllItems} style={{marginRight: "1em"}}>Reload</Button>
         <DataViewGrid
             rowData={rowData}

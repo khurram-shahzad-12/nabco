@@ -17,7 +17,7 @@ import {PaymentActionCellRenderer} from "../cellRenderers/PaymentActionCellRende
 import {PriceCellRenderer} from "../cellRenderers/PriceCellRenderer";
 import { DateCellRenderer } from "../cellRenderers/DateCellRenderer";
 import MenuItem from "@mui/material/MenuItem";
-import {useAuth0} from "@auth0/auth0-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const style = {
     position: 'absolute',
@@ -35,7 +35,7 @@ const style = {
 const API_NAME = "/supplier-invoices/recordPayments"
 
 const SupplierPaymentsForm = props => {
-    const {user} = useAuth0();
+    const {user} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [snackState, setSnackState] = useState(defaultSnackState);
@@ -181,7 +181,7 @@ const SupplierPaymentsForm = props => {
         }
     };
 
-    const defaultFormState = {...getDefaultFormFields(paymentData), recorded_by: user.name};
+    const defaultFormState = {...getDefaultFormFields(paymentData), recorded_by: user.user_name};
     const [formValues, setFormValues] = useState({...defaultFormState});
     const colDefs = [...getColumnDefs(paymentData), getPaymentActionColumnDef(setEditMode, setFormValues)];
     const rowData = props.data?.payments;

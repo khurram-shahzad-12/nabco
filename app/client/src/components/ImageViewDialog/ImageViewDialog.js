@@ -16,7 +16,6 @@ import CustomisedSnackBar from "../customisedSnackBar/CustomisedSnackBar";
 import {PaymentActionCellRenderer} from "../cellRenderers/PaymentActionCellRenderer";
 import {PriceCellRenderer} from "../cellRenderers/PriceCellRenderer";
 import MenuItem from "@mui/material/MenuItem";
-import {useAuth0} from "@auth0/auth0-react";
 import {URL_API, URL_ROOT} from "../../configs/config";
 
 const style = {

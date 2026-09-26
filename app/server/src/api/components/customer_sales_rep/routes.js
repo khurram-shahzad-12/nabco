@@ -1,12 +1,12 @@
 const express = require('express');
 const controller = require('./controller');
-const {writeCustomerSalesRepPermission, readCustomersCheck} = require('../../../middleware/auth0');
-
+const {writeCustomerSalesRepPermission, readCustomerSalesRepPermission} = require('../../../middleware/auth0');
+const {authenticate} = require('../../../middleware/auth');
 const router = express.Router();
 
-router.get('/:id?', readCustomersCheck, controller.getCustomerSalesRep);
-router.post('/', writeCustomerSalesRepPermission, controller.addCustomerSalesRep);
-router.put('/:id', writeCustomerSalesRepPermission, controller.updateCustomerSalesRep);
-router.delete('/:id', writeCustomerSalesRepPermission, controller.deleteCustomerSalesRep);
+router.get('/:id?',authenticate, readCustomerSalesRepPermission, controller.getCustomerSalesRep);
+router.post('/',authenticate, writeCustomerSalesRepPermission, controller.addCustomerSalesRep);
+router.put('/:id',authenticate, writeCustomerSalesRepPermission, controller.updateCustomerSalesRep);
+router.delete('/:id',authenticate, writeCustomerSalesRepPermission, controller.deleteCustomerSalesRep);
 
 module.exports = router;

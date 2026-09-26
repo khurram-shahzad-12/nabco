@@ -39,7 +39,7 @@ const fetchAllCustomerGroupsForGivenItemQuery = (query) => {
     return database.find(Customer_Groups, query);
 };
 
-const insertCustomerGroups = async (properties, userPermissions) => {
+const insertCustomerGroups = async (properties) => {
     const doc = new Customer_Groups(properties);
     const error = await doc.validate();
     if (!error) {

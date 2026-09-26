@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-
 import displaySnackState from "../../components/customisedSnackBar/DisplaySnackState";
 import CustomisedSnackBar from "../../components/customisedSnackBar/CustomisedSnackBar";
 import {LoadingButton} from "../../components/loadingButton/LoadingButton";
@@ -12,22 +11,20 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange, handleNumberInputChange,
-    currentUserHasPermissions, dateStringComparator, momentFormat, stringValueToNumberComparator
+    dateStringComparator, momentFormat, stringValueToNumberComparator
 } from "../../components/formFunctions/FormFunctions";
-
+import { useAuth } from '../../contexts/AuthContext';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import {Button, Dialog, TextField} from "@mui/material";
-
 import LinkedFieldCellValueGetterRenderer from "../../components/cellRenderers/LinkedFieldCellValueGetterRenderer";
 import DataViewGrid from "../../components/DataViewGrid/DataViewGrid";
 import DialogClosingTitleBar from "../../components/DialogClosingTitleBar/DialogClosingTitleBar";
 import cardStyles from "../../components/PopupCardDialogStyles/PopupCardDialogStyles.module.css";
 import moment from "moment";
 import MenuItem from "@mui/material/MenuItem";
-import {useAuth0} from "@auth0/auth0-react";
 import {PriceCellRenderer} from "../../components/cellRenderers/PriceCellRenderer";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
@@ -36,7 +33,7 @@ import DatePicker from "@mui/lab/DatePicker";
 const API_NAME = '/driver/total';
 
 export const DriverTotals = () => {
-    const {user} = useAuth0();
+    const {user, hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -47,7 +44,7 @@ export const DriverTotals = () => {
     const [driversData, setDriversData] = useState(defaultLoadedFieldData);
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [rowData, setRowData] = useState([]);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_DRIVER_TOTALS_PERMISSION];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_DRIVER_TOTALS_PERMISSION;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -203,7 +200,7 @@ export const DriverTotals = () => {
                 hide: true
             }
         },
-            ...currentUserHasPermissions([process.env.REACT_APP_WRITE_CHECKED_DRIVER_DETAILS_PERMISSION]) ? [{
+            ...hasPermission([process.env.REACT_APP_WRITE_CHECKED_DRIVER_DETAILS_PERMISSION]) ? [{
                 field: "checked_by",
                 label: "Checked by",
                 type: "textfield",
@@ -360,7 +357,7 @@ export const DriverTotals = () => {
         }
     }, [editMode]);
 
-    const defaultFormState = {...getDefaultFormFields(driverTotalsData), recorded_by: user.name, ...currentUserHasPermissions([process.env.REACT_APP_WRITE_CHECKED_DRIVER_DETAILS_PERMISSION]) ? {checked_by: user.name} : {}};
+    const defaultFormState = {...getDefaultFormFields(driverTotalsData), recorded_by: user.user_name, ...hasPermission([process.env.REACT_APP_WRITE_CHECKED_DRIVER_DETAILS_PERMISSION]) ? {checked_by: user.user_name} : {}};
     const [formValues, setFormValues] = useState({...defaultFormState});
     const colDefs = [...getColumnDefs(driverTotalsData), getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllTotals, true, requiredWritePermissions, null)];
 
@@ -403,7 +400,7 @@ export const DriverTotals = () => {
                 renderInput={(params) => <TextField {...params} />}
             />
         </LocalizationProvider>
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Driver Total</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Driver Total</Button>
         <Button variant="contained" onClick={fetchAllTotals}>Reload</Button>
         <DataViewGrid rowData={rowData} columnDefs={colDefs} loading={sendingData}/>
     </div>

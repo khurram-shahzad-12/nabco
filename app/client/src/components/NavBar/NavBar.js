@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Toolbar from '@mui/material/Toolbar';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
@@ -9,7 +9,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import Collapse from '@mui/material/Collapse';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import IconButton from '@mui/material/IconButton';
 import { menuItems } from '../../configs/NavBarMenuItems';
 import LoginIcon from '@mui/icons-material/Login';
@@ -23,16 +23,15 @@ import { styled } from '@mui/material/styles';
 import Profile from "../Profile/Profile";
 import logo from "../../resources/nabco.jpg";
 import styles from "./styles.module.css";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from '../../contexts/AuthContext';
 import Cookies from 'universal-cookie';
 import SettingsModal from "../SettingsModal/SettingsModal";
 import jwtDecode from "jwt-decode";
 import { useIdleTimer } from 'react-idle-timer'
 import { io } from 'socket.io-client';
 import { URL_ROOT } from "../../configs/config";
-import { Chat } from '@mui/icons-material';
+import { Chat, Token } from '@mui/icons-material';
 import Badge from '@mui/material/Badge';
-import { useMemo } from 'react';
 import ChatDialog from '../ChatDialog/ChatDialog';
 import { useChatSocket } from '../hooks/useChatSocket';
 import testLogo from "../../resources/testserver_logo.jpeg";
@@ -74,7 +73,8 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 const NavBar = (props) => {
-    const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+    const navigate = useNavigate();
+    const { isAuthenticated, isLoading, logout, user, token, hasPermission } = useAuth();
     const [collapseStates, setCollapseStates] = useState({});
     const [drawerOpen, setDrawerOpen] = useState(true);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -101,42 +101,79 @@ const NavBar = (props) => {
     const audioRef = useRef(null)
     const cookies = useMemo(() => new Cookies(), []);
 
+    // const token = jwtDecode(cookies.get('apitoken'));
+    // const userId = token.id;
+
+    const hasMenuPermission = useCallback((requiredPermissions) => {
+        if (!requiredPermissions || requiredPermissions.length === 0) return true;
+        return requiredPermissions.some(perm => {
+            if (typeof perm === 'string') {
+                return hasPermission(perm);
+            }
+            return false;
+        });
+    }, [hasPermission]);
+
+    useEffect(() => {
+        if (!isAuthenticated || !token) return;
+        const decodedToken = jwtDecode(token);
+        const userId = decodedToken.id;
+        if (isAuthenticated && token) {
+            const socket = io(URL_ROOT, {
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 10000,
+                timeout: 120000,
+                closeOnBeforeunload: false,
+            });
+            socket.on("connect", () => {
+                socket.emit("REGISTER", [userId, token]);
+                socket.emit("GET_ALL_USERS")
+            });
+            socket.on("LOGOUT", () => {
+                socket.disconnect();
+                logout();
+            });
+            setSocketIO(socket);
+
+            return () => {
+                socket.disconnect();
+            };
+        }
+    }, [isAuthenticated, token, logout]);
+
     useChatSocket({
-    socketIO,
-    cookies,
-    isAuthenticated,
-    messagesOpen,
-    selectedUser,
-    offlineMessagesMap,
-    loadingMore,
-    setMessages,
-    setUnreadMap,
-    setActiveUsers,
-    setAllUsers,
-    setOfflineMessagesMap,
-    setHasMore,
-    setLoadingMore,
-    messagesEndRef,
-    audioRef, 
-    soundEnabled,
-});
+        socketIO,
+        cookies,
+        isAuthenticated,
+        messagesOpen,
+        selectedUser,
+        offlineMessagesMap,
+        loadingMore,
+        setMessages,
+        setUnreadMap,
+        setActiveUsers,
+        setAllUsers,
+        setOfflineMessagesMap,
+        setHasMore,
+        setLoadingMore,
+        messagesEndRef,
+        audioRef,
+        soundEnabled,
+    });
 
     const onIdle = () => {
         setState('Idle');
-        isAuthenticated && logoutUser();
+        isAuthenticated && logout();
     }
 
     const onActive = () => {
         setState('Active');
     }
 
-    const {
-        getRemainingTime,
-        getTabId,
-        isLeader,
-        isLastActiveTab,
-        message
-    } = useIdleTimer({
+    const { getRemainingTime } = useIdleTimer({
         onIdle,
         onActive,
         timeout: process.env.REACT_APP_INACTIVITY_TIMEOUT_MILLISECONDS,
@@ -155,26 +192,29 @@ const NavBar = (props) => {
         }
     })
 
-    const logoutUser = () => {
-        //remove token in cookies
-        if(socketIO && socketIO.connected) {socketIO.emit("USER_LOGOUT")}
-        cookies.remove("apiToken");
-        if (socketIO) { socketIO.disconnect() };
-        logout({ returnTo: window.location.origin });
+    const logoutUser = async () => {
+       if (socketIO) {
+        try {
+            if (socketIO.connected) {
+                socketIO.emit("USER_LOGOUT");
+            }
+            socketIO.disconnect();
+        } catch (error) {
+            console.log('Socket disconnect error (ignored):', error);
+        }
+        setSocketIO(null); // Clear socket state
+    }
+        await logout();
+        navigate('/login');
+
     }
 
+    // In NavBar.js - Fixed handleClick function
     const handleClick = (name) => {
-        const existingStateKeys = Object.keys(collapseStates);
-        const existingStateAllClosed = {};
-        existingStateKeys.forEach(key => {
-            if (key !== name) {
-                existingStateAllClosed[key] = false
-            }
-        });
-        setCollapseStates({
-            ...existingStateAllClosed,
-            [name]: collapseStates[name] ? !collapseStates[name] : true
-        });
+        setCollapseStates(prev => ({
+            ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
+            [name]: !prev[name]
+        }));
     };
 
     const handleDrawerOpen = () => {
@@ -185,34 +225,9 @@ const NavBar = (props) => {
         setDrawerOpen(false);
     };
 
-    const accessTokenCallback = token => {
-        if (token && isAuthenticated) {
-            const decodedToken = jwtDecode(token);
-            setUserPermissions(decodedToken.permissions);
-            const socket = io(URL_ROOT,{
-                transports: ['websocket', 'polling'],
-                reconnection: true,
-                reconnectionAttempts: Infinity,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 10000,
-                timeout: 120000,
-                closeOnBeforeunload: false,
-            }).connect();
-            socket.on("connect", () => { socket.emit("REGISTER", [decodedToken.sub, token]); socket.emit("GET_ALL_USERS") });
-            socket.on("LOGOUT", () => {
-                socket.disconnect();
-                logoutUser();
-            });
-            setSocketIO(socket);
-        }
-    };
-
-    const hasPermission = (targetPermissions) => {
-        return userPermissions?.some(item => targetPermissions.includes(item))
-    };
     const sendMessage = useCallback(() => {
         if (!socketIO || !newMessage.trim() || !selectedUser) return;
-        const fromUser = jwtDecode(cookies.get("apiToken")).sub;
+        const fromUser = jwtDecode(cookies.get("apitoken")).id;
         const msgObj = { senderId: fromUser, receiverId: selectedUser, message: newMessage.trim(), replyTo: replyTo?._id || null };
         socketIO.emit("PRIVATE_MESSAGE", msgObj);
         setTimeout(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, 100);
@@ -222,17 +237,17 @@ const NavBar = (props) => {
     }, [socketIO, newMessage, selectedUser, cookies])
 
     const categorizeUsers = useCallback((userList, offlineMsgMap) => {
-        const myUserId = cookies.get("apiToken") ? jwtDecode(cookies.get("apiToken")).sub : null;
+        const myUserId = cookies.get("apitoken") ? jwtDecode(cookies.get("apitoken"))?.id : null;
         if (!myUserId) return { active: [], inactiveWithMessages: [], other: [] };
-        const filteredList = userList.filter(user => user.auth0Id !== myUserId);
+        const filteredList = userList.filter(user => user.id !== myUserId);
         const active = filteredList.filter(user => user.online === true);
         const inactiveWithMessages = filteredList.filter(user => {
             if (user.online === true) return false;
-            return offlineMsgMap[user.auth0Id] && offlineMsgMap[user.auth0Id].length > 0;
+            return offlineMsgMap[user.id] && offlineMsgMap[user.id].length > 0;
         });
         const other = filteredList.filter(user => {
             if (user.online === true) return false;
-            if (inactiveWithMessages.some(u => u.auth0Id === user.auth0Id)) return false;
+            if (inactiveWithMessages.some(u => u.id === user.id)) return false;
             return true;
         });
         return { active, inactiveWithMessages, other };
@@ -290,18 +305,18 @@ const NavBar = (props) => {
         }
     }, [allUsers, offlineMessagesMap, categorizeUsers]);
 
-    useEffect(()=> {
+    useEffect(() => {
         const notificationSound = new Audio('/notification.mp3');
         notificationSound.preload = 'auto';
         notificationSound.volume = 0.8;
         audioRef.current = notificationSound;
         return () => {
-            if(notificationSound){
+            if (notificationSound) {
                 notificationSound.pause();
                 notificationSound.currentTime = 0;
             }
         }
-    },[])
+    }, [])
     return <Box sx={{ display: 'flex', height: "100%" }}>
         <CssBaseline />
         <AppBar position="fixed" open={drawerOpen}>
@@ -344,54 +359,60 @@ const NavBar = (props) => {
             open={drawerOpen}
         >
             <DrawerHeader style={logoDivStyles}>
-                <img src={ process.env.REACT_APP_AUTH0_DOMAIN.startsWith("development-spice-direct")? testLogo: logo} style={{ width: "100%", height: "100%" }} alt="Spice Direct Logo" />
+                <img src={process.env.REACT_APP_TYPE === "development" ? logo : logo} style={{ width: "100%", height: "100%" }} alt="Nabco Logo" />
                 <IconButton onClick={handleDrawerClose}>
                     {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
             </DrawerHeader>
             <Divider />
-            <Profile tokenCallback={accessTokenCallback} />
-            {
-                process.env.REACT_APP_AUTH0_DOMAIN.startsWith("development-spice-direct") ?
+            <Profile/>
+            {/* {
+                process.env.REACT_APP_TYPE === "development" ?
                     <div style={{ background: "red", textAlign: "center" }}>
                         <h3>TESTING</h3>
                     </div>
                     :
                     <></>
-            }
+            } */}
             <Divider />
             {isAuthenticated ?
                 <div>
-                    {menuItems.map(parentItem =>
-                        hasPermission(parentItem.requiredPermissions) &&
-                        <>
-                            <ListItemButton onClick={event => handleClick(parentItem.name)}
-                                key={parentItem.name}>
-                                <ListItemIcon>
-                                    {parentItem.icon}
-                                </ListItemIcon>
-                                <ListItemText primary={parentItem.name} />
-                                {collapseStates[parentItem.name] ? <ExpandLess /> : <ExpandMore />}
-                            </ListItemButton>
-                            <Collapse in={collapseStates[parentItem.name]} timeout="auto" unmountOnExit>
-                                {
-                                    parentItem.subItems.map(subItem =>
-                                        hasPermission(subItem.requiredPermissions) &&
-                                        <List component="div" disablePadding>
-                                            <Link to={`../${parentItem.name}/${subItem.name}`}
-                                                className={props.theme.palette.mode === "dark" ? styles.linkDark : styles.linkLight}>
-                                                <ListItemButton sx={{ pl: 4 }}>
-                                                    <ListItemIcon>
-                                                        {subItem.icon}
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={subItem.label} />
-                                                </ListItemButton>
-                                            </Link>
-                                        </List>
-                                    )
-                                }
-                            </Collapse>
-                        </>
+                    {menuItems.map(parentItem => {
+                        const hasParentAccess = hasMenuPermission(parentItem.requiredPermissions);
+                        if (!hasParentAccess) return null;
+                        const accessibleSubItems = parentItem.subItems?.filter(subItem => hasMenuPermission(subItem.requiredPermissions)) || [];
+                        if (accessibleSubItems.length === 0) return null;
+                        return (
+                            <React.Fragment key={parentItem.name}>
+                                <ListItemButton onClick={event => handleClick(parentItem.name)}>
+                                    <ListItemIcon>
+                                        {parentItem.icon}
+                                    </ListItemIcon>
+                                    <ListItemText primary={parentItem.name} />
+                                    {collapseStates[parentItem.name] ? <ExpandLess /> : <ExpandMore />}
+                                </ListItemButton>
+                                <Collapse in={collapseStates[parentItem.name]} timeout="auto" unmountOnExit>
+                                    {
+                                        accessibleSubItems.map(subItem => (
+                                            <List component="div" disablePadding key={subItem.name}>
+                                                <Link to={`../${parentItem.name}/${subItem.name}`}
+                                                    className={props.theme.palette.mode === "dark" ? styles.linkDark : styles.linkLight}>
+                                                    <ListItemButton sx={{ pl: 4 }}>
+                                                        <ListItemIcon>
+                                                            {subItem.icon}
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={subItem.label} />
+                                                    </ListItemButton>
+                                                </Link>
+                                            </List>
+                                        )
+                                            
+                                        )
+                                    }
+                                </Collapse>
+                            </React.Fragment>
+                        )
+                    }
                     )}
                     <Divider />
                     <ListItemButton onClick={() => { setMessagesOpen(true); }}>
@@ -403,7 +424,7 @@ const NavBar = (props) => {
                 </div>
                 :
                 <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl: 4 }} onClick={() => loginWithRedirect()} disabled={isLoading}>
+                    <ListItemButton sx={{ pl: 4 }} disabled={isLoading}>
                         <ListItemIcon>
                             <LoginIcon />
                         </ListItemIcon>

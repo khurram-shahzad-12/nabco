@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Backdrop, Button, CircularProgress, Grid, TextField, Typography} from "@mui/material";
 import {
-    currentUserHasPermissions,
     defaultLoadedFieldData,
     defaultSnackState,
     fetchDropdownField, getAndOpenCustomerGroupItemsPrintoutInNewTab, handleDataEditSubmit
@@ -12,11 +11,12 @@ import Autocomplete from "@mui/material/Autocomplete";
 import DataViewGrid from "../../components/DataViewGrid/DataViewGrid";
 import {GroupPricingRemoveCellRenderer} from "../../components/cellRenderers/GroupPricingItemRemoveCellRenderer";
 import PrintIcon from "@mui/icons-material/Print";
-
+import { useAuth } from '../../contexts/AuthContext';
 const API_NAME = "/customerGroups";
 
 export const GroupPricing = props => {
-    const requiredPriceOverridePermission = [process.env.REACT_APP_WRITE_OVERRIDE_MIN_SALE_PRICE_CLAIM];
+    const {hasPermission} = useAuth();
+    const requiredPriceOverridePermission = process.env.REACT_APP_WRITE_OVERRIDE_MIN_SALE_PRICE_CLAIM;
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [sendingData, setSendingData] = useState(false);
     const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(null);
@@ -69,7 +69,7 @@ export const GroupPricing = props => {
     const handleAddItem = event => {
         event.preventDefault();
         const customer_price = Number(event.target.custom_sale_price.value);
-        if(!currentUserHasPermissions(requiredPriceOverridePermission) && customer_price < selectedItem.min_sale_price) {
+        if(!hasPermission(requiredPriceOverridePermission) && customer_price < selectedItem.min_sale_price) {
             displaySnackState("Price cannot be below minimum sale price", "error", setSnackState);
         } else {
             setSelectedCustomerGroup({

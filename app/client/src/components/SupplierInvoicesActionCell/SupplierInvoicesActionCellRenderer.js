@@ -4,11 +4,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import Stack from '@mui/material/Stack';
-import {currentUserHasPermissions, handleDeleteEntry} from "../formFunctions/FormFunctions";
+import {handleDeleteEntry} from "../formFunctions/FormFunctions";
 import PaymentsIcon from "@mui/icons-material/Payments";
+import { useAuth } from '../../contexts/AuthContext';
 
 export const SupplierInvoicesActionCellRenderer = (props) => {
-    const WRITE_PAYMENT_PERMISSIONS = [process.env.REACT_APP_WRITE_SUPPLIER_INVOICE_PAYMENTS_DATA_CLAIM];
+    const {hasPermission} = useAuth();
+    const WRITE_PAYMENT_PERMISSIONS = process.env.REACT_APP_WRITE_SUPPLIER_INVOICE_PAYMENTS_DATA_CLAIM;
 
     const deleteAction = () => {
         if (window.confirm("Are you sure you want to delete this item?")) {
@@ -27,12 +29,12 @@ export const SupplierInvoicesActionCellRenderer = (props) => {
 
     return <Stack direction="row" spacing={1}>
         <Tooltip title="Edit">
-            <IconButton aria-label="edit" onClick={editAction} disabled={!currentUserHasPermissions(props.requiredWritePermissions)}>
+            <IconButton aria-label="edit" onClick={editAction} disabled={!hasPermission(props.requiredWritePermissions)}>
                 <EditIcon />
             </IconButton>
         </Tooltip>
         {
-            (currentUserHasPermissions(WRITE_PAYMENT_PERMISSIONS) && !props.reduced) &&
+            (hasPermission(WRITE_PAYMENT_PERMISSIONS) && !props.reduced) &&
             <Tooltip title="Record Payment(s)">
                 <IconButton aria-label="record payments" onClick={paymentsAction}>
                     <PaymentsIcon />
@@ -41,7 +43,7 @@ export const SupplierInvoicesActionCellRenderer = (props) => {
         }
         {!props.disabledDelete &&
         <Tooltip title="Delete">
-            <IconButton aria-label="delete" onClick={deleteAction} disabled={!currentUserHasPermissions(props.requiredWritePermissions)}>
+            <IconButton aria-label="delete" onClick={deleteAction} disabled={!hasPermission(props.requiredWritePermissions)}>
                 <DeleteIcon />
             </IconButton>
         </Tooltip>

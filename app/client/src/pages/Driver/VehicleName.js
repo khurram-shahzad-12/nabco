@@ -12,9 +12,8 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange, handleNumberInputChange,
-    currentUserHasPermissions
 } from "../../components/formFunctions/FormFunctions";
-
+import { useAuth } from '../../contexts/AuthContext';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
@@ -29,12 +28,13 @@ import cardStyles from "../../components/PopupCardDialogStyles/PopupCardDialogSt
 const API_NAME = '/driver/vehicle';
 
 export const VehicleName = () => {
+    const {hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [rowData, setRowData] = useState([]);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -144,7 +144,7 @@ export const VehicleName = () => {
                 </Card>
             </div>
         </Dialog>
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Vehicle</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Vehicle</Button>
         <Button variant="contained" onClick={fetchAllVehicles}>Reload</Button>
         <DataViewGrid rowData={rowData} columnDefs={colDefs} loading={sendingData}/>
     </div>

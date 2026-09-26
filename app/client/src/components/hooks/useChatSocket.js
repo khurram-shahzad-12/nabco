@@ -23,21 +23,25 @@ export const useChatSocket = ({
 
     useEffect(() => {
         if (!socketIO || !isAuthenticated) return;
-        const myUserId = jwtDecode(cookies.get("apiToken")).sub;
+        const user = jwtDecode(cookies.get("apitoken"));
+        const myUserId = user.id;
         const handleActiveUsers = (users) => {
+            if(!users || !Array.isArray(users)) return;
             const filteredUsers = users.filter(user => user.id !== myUserId)
             setActiveUsers(filteredUsers);
             setAllUsers(prev => prev.map(user => ({
                 ...user,
-                online: filteredUsers.some(activeUser => activeUser.id === user.auth0Id),
+                online: filteredUsers.some(activeUser => activeUser.id === user.id),
             })))
         }
         const handleAllUsers = (users) => {
-            const filteredUsers = users.filter(user => user.auth0Id !== myUserId);
+            if(!users ||!Array.isArray(users)) return;   
+            const filteredUsers = users.filter(user => user.id !== myUserId);
             setAllUsers(filteredUsers);
         };
 
         const handlePrivateMessage = (msg) => {
+            if(!msg) return;
             if (messagesOpen && selectedUser === msg.senderId || msg.receiverId === selectedUser) {
                 setMessages(prev => {
                     if (prev.some(m => m._id === msg._id)) return prev;

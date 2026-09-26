@@ -4,7 +4,7 @@ const moment = require('moment');
 const APP_ENV = process.env.APP_ENV || 'production'
 
 const parseBoolean = (value, defaultValue = false) => value ? ['1', 'true', 'yes'].includes(value.toString().trim().toLowerCase()) : defaultValue;
-const configFile = APP_ENV === 'production' ? 'config/nabco_invoice_config.json' : 'config/invoice_config.json';
+const configFile = APP_ENV === 'development' ? 'config/nabco_invoice_config.json' : 'config/nabco_invoice_config.json';
 const invoice_config_data = JSON.parse(fs.readFileSync(configFile));
 
 const getInvoiceConfigForDate = invoiceDate => {
@@ -32,11 +32,6 @@ const DOMAIN = process.env.DOMAIN || 'http://localhost';
 const useCORS = parseBoolean(process.env.CORS, true);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'dev';
 
-// [Auth0]
-const useAUTH0 = parseBoolean(process.env.AUTH0);
-const TOKEN_ISSUER = process.env.TOKEN_ISSUER || 'https://development-spice-direct.eu.auth0.com/';
-const TOKEN_AUDIENCE = process.env.TOKEN_AUDIENCE || `${DOMAIN}:${PORT}/api/`;
-const CLAIM_NAME = process.env.CLAIM_NAME || 'https://spicedirect/roles';
 const READ_ZONES_CLAIM= process.env.READ_ZONES_CLAIM || 'read:zones';
 const WRITE_ZONES_CLAIM= process.env.WRITE_ZONES_CLAIM || 'write:zones';
 const READ_SECTIONS_CLAIM= process.env.READ_SECTIONS_CLAIM || 'read:sections';
@@ -75,6 +70,7 @@ const MANAGE_USERS_PERMISSION= process.env.MANAGE_USERS_PERMISSION || 'write:man
 const WRITE_DRIVER_DETAILS_PERMISSION= process.env.WRITE_DRIVER_DETAILS_PERMISSION || 'write:driver_details';
 const WRITE_DRIVER_TOTALS_PERMISSION= process.env.WRITE_DRIVER_TOTALS_PERMISSION || 'write:driver_totals';
 const WRITE_CHECK_DRIVER_DETAILS_PERMISSION= process.env.WRITE_CHECK_DRIVER_DETAILS_PERMISSION || 'write:check_driver_details';
+const READ_CUSTOMER_SALES_REP_PERMISSION= process.env.READ_CUSTOMER_SALES_REP_PERMISSION || 'read:customer_sales_rep';
 const WRITE_CUSTOMER_SALES_REP_PERMISSION= process.env.WRITE_CUSTOMER_SALES_REP_PERMISSION || 'write:customer_sales_rep';
 const WRITE_INVENTORY_ALERT_QUANTITY= process.env.WRITE_INVENTORY_ALERT_QUANTITY || 'write:inventory_alert_quantity';
 const READ_PAYMENT_TERM_CLAIM= process.env.READ_PAYMENT_TERM_CLAIM || 'read:payment_term';
@@ -86,20 +82,36 @@ const READ_DASHBOARD= process.env.READ_DASHBOARD  ||'read:dashboard';
 const WRITE_ACTIVITY=process.env.WRITE_ACTIVITY ||'write:activity';
 const READ_LEADS=process.env.READ_LEADS ||'read:leads';
 const WRITE_LEADS=process.env.WRITE_LEADS || 'write:leads';
-const READ_OPPORTUNITY=process.env_READ_OPPORTUNITY || 'read:opportunity';
+const READ_OPPORTUNITY=process.env.READ_OPPORTUNITY || 'read:opportunity';
 const WRITE_OPPORTUNITY=process.env.WRITE_OPPORTUNITY || 'write:opportunity';
 const READ_QUOTATION=process.env.READ_QUOTATION || 'read:quotation';
 const WRITE_QUOTATION=process.env.WRITE_QUOTATION || 'write:quotation';
 const READ_CRM_DASHBOARD=process.env.READ_CRM_DASHBOARD || 'read:crm_dashboard';
 const READ_TELESALES_DASHBOARD=process.env.READ_TELESALES_DASHBOARD || 'read:telesales_dashboard';
+const READ_SALES_LEDGER=process.env.READ_SALES_LEDGER || 'read:sales_ledger';
+const READ_PURCHASE_LEDGER=process.env.READ_PURCHASE_LEDGER || 'read:purchase_ledger';
+const WRITE_SALES_LEDGER=process.env.WRITE_SALES_LEDGER || 'write:sales_ledger';
+const WRITE_PURCHASE_LEDGER=process.env.WRITE_PURCHASE_LEDGER || 'write:purchase_ledger';
+const READ_USERS=process.env.READ_USERS || 'read:users';
+const WRITE_USERS=process.env.WRITE_USERS || 'write:users';
+const READ_USER_ROLES=process.env.READ_USER_ROLES || 'read:role';
+const WRITE_USER_ROLES=process.env.WRITE_USER_ROLES || 'write:role';
+const READ_USER_PERMISSION=process.env.READ_USER_PERMISSION || 'read:permission';
+const WRITE_USER_PERMISSION=process.env.WRITE_USER_PERMISSION || 'write:permission';
+const READ_DAILY_ORDER_REPORT=process.env.READ_DAILY_ORDER_REPORT || 'read:daily_order_report';
+const READ_ORDER_HISTORY=process.env.READ_ORDER_HISTORY || 'read:order_history';
+const REACT_APP_EDIT_CREDIT_NOTES_CLAIM=process.env.REACT_APP_EDIT_CREDIT_NOTES_CLAIM || 'edit:credit_note';
+const REACT_APP_CREDIT_NOTES_APPLY_CLAIM=process.env.REACT_APP_CREDIT_NOTES_APPLY_CLAIM || 'write:credit_note';
+const REACT_APP_CREATE_CREDIT_NOTES_CLAIM=process.env.REACT_APP_CREATE_CREDIT_NOTES_CLAIM ||'write:credit_note';
+const REACT_APP_READ_CREDIT_NOTES_CLAIM=process.env.REACT_APP_READ_CREDIT_NOTES_CLAIM ||'read:credit_note';
 
 // [Helmet]
 const useHELMET = parseBoolean(process.env.HELMET);
-const CSP_DEFAULT_SRC = [TOKEN_ISSUER];
 const CSP_IMG_SRC = ['https://s.gravatar.com/', 'https://i1.wp.com/'];
 
 // [MongoDB]
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/spice_direct';
+// const MONGO_URL = 'mongodb://localhost:27017/nabco';
+const MONGO_URL = 'mongodb://mongodb:27017/nabco';
 const MONGO_AUTH_DB = process.env.MONGO_AUTH_DB || 'admin';
 const {MONGO_USER, MONGO_PASS} = process.env;
 
@@ -121,6 +133,11 @@ const SYNC_SECRET_TOKEN = process.env.SYNC_SECRET_TOKEN;
 //content-src
 const CONTENT_SRC_ALLOWED = process.env.content_src_allowed?.split(",\n") || [];
 
+
+//jwt-secret
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
 module.exports = {
     getInvoiceConfigForDate,
     getLatestInvoiceConfig,
@@ -135,10 +152,6 @@ module.exports = {
     useCORS,
     LOG_LEVEL,
 
-    useAUTH0,
-    TOKEN_ISSUER,
-    TOKEN_AUDIENCE,
-    CLAIM_NAME,
     READ_ZONES_CLAIM,
     WRITE_ZONES_CLAIM,
     READ_SECTIONS_CLAIM,
@@ -177,6 +190,7 @@ module.exports = {
     WRITE_DRIVER_DETAILS_PERMISSION,
     WRITE_DRIVER_TOTALS_PERMISSION,
     WRITE_CHECK_DRIVER_DETAILS_PERMISSION,
+    READ_CUSTOMER_SALES_REP_PERMISSION,
     WRITE_CUSTOMER_SALES_REP_PERMISSION,
     WRITE_INVENTORY_ALERT_QUANTITY,
     READ_PAYMENT_TERM_CLAIM,
@@ -185,9 +199,24 @@ module.exports = {
     WRITE_CUSTOMER_GROUPS_CLAIM,
     WRITE_SUPPLIER_INVOICE_PAYMENTS_DATA,
     READ_DASHBOARD,
+    READ_SALES_LEDGER,
+    READ_PURCHASE_LEDGER,
+    WRITE_SALES_LEDGER,
+    WRITE_PURCHASE_LEDGER,
+    READ_USERS,
+    WRITE_USERS,
+    READ_USER_ROLES,
+    WRITE_USER_ROLES,
+    READ_USER_PERMISSION,
+    WRITE_USER_PERMISSION,
+    READ_DAILY_ORDER_REPORT,
+    READ_ORDER_HISTORY,
+    REACT_APP_CREATE_CREDIT_NOTES_CLAIM,
+    REACT_APP_EDIT_CREDIT_NOTES_CLAIM,
+    REACT_APP_CREDIT_NOTES_APPLY_CLAIM,
+    REACT_APP_READ_CREDIT_NOTES_CLAIM,
 
     useHELMET,
-    CSP_DEFAULT_SRC,
     CSP_IMG_SRC,
 
     MONGO_URL,
@@ -219,4 +248,7 @@ module.exports = {
     READ_CRM_DASHBOARD,
     READ_TELESALES_DASHBOARD,
     APP_ENV,
+
+    JWT_SECRET,
+    JWT_REFRESH_SECRET,
 };

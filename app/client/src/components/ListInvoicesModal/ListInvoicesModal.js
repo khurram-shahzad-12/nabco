@@ -2,14 +2,14 @@ import React, {useState} from "react";
 import Modal from '@mui/material/Modal';
 import Box from "@mui/material/Box";
 import {
-    currentUserHasPermissions, dateStringComparator,
-    defaultSnackState, getInvoiceReportsInNewTab, stringValueToNumberComparator
+    dateStringComparator, defaultSnackState, getInvoiceReportsInNewTab, stringValueToNumberComparator
 } from "../formFunctions/FormFunctions";
 import {Button} from "@mui/material";
 import DataViewGrid from "../DataViewGrid/DataViewGrid";
-import {invoiceActionCellRenderer} from "../cellRenderers/InvoicesActionCellRenderer";
+import {InvoiceActionCellRenderer} from "../cellRenderers/InvoicesActionCellRenderer";
 import PaymentsForm from "../PaymentsForm/PaymentsForm";
 import {PriceCellRenderer} from "../cellRenderers/PriceCellRenderer";
+import { useAuth } from "../../contexts/AuthContext";
 import moment from "moment";
 
 const style = {
@@ -26,12 +26,13 @@ const style = {
 };
 
 const ListInvoicesModal = modalProps => {
+    const {hasPermission} = useAuth();
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [openModal, setOpenModal] = useState(false);
     const [paymentsModalData, setPaymentsModalData] = useState({open: false});
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_INVOICES_CLAIM];
-    const requiredEditPermissions = [process.env.REACT_APP_EDIT_INVOICES_CLAIM];
-    const requiredProfitPermissions = [process.env.REACT_APP_READ_INVOICE_MARGINS_CLAIM];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_INVOICES_CLAIM;
+    const requiredEditPermissions = process.env.REACT_APP_EDIT_INVOICES_CLAIM;
+    const requiredProfitPermissions = process.env.REACT_APP_READ_INVOICE_MARGINS_CLAIM;
 
     const handleOpenPaymentsForm = (data) => setPaymentsModalData({open: true, data: data});
     const handleClosePaymentsForm = () => setPaymentsModalData({open: false});
@@ -55,7 +56,7 @@ const ListInvoicesModal = modalProps => {
             requiredEditPermissions: requiredEditPermissions,
         };
         return <div style={{display: "inline-flex"}}>
-            {invoiceActionCellRenderer(actionCellProps)}
+            {InvoiceActionCellRenderer(actionCellProps)}
         </div>
     }
 
@@ -85,7 +86,7 @@ const ListInvoicesModal = modalProps => {
             headerName: "Total Amount",
             type: "rightAligned"
         },
-        ...currentUserHasPermissions(requiredProfitPermissions) ? [{ headerName: "Profit", field: "profit", cellRenderer: PriceCellRenderer, comparator: stringValueToNumberComparator, type: "rightAligned"}]: [],
+        ...hasPermission(requiredProfitPermissions) ? [{ headerName: "Profit", field: "profit", cellRenderer: PriceCellRenderer, comparator: stringValueToNumberComparator, type: "rightAligned"}]: [],
         {
             field: "_id",
             headerName: "Actions",
@@ -94,7 +95,7 @@ const ListInvoicesModal = modalProps => {
     ];
 
     return <div>
-        <Button variant="contained" onClick={handleOpenModal} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Show Invoices({modalProps.invoices.length})</Button>
+        <Button variant="contained" onClick={handleOpenModal} disabled={!hasPermission(requiredWritePermissions)}>Show Invoices({modalProps.invoices.length})</Button>
         <Modal
             open={openModal}
             onClose={handleClose}

@@ -1,50 +1,43 @@
-import React, {useEffect, useState} from "react";
-import {useAuth0} from "@auth0/auth0-react";
-import Cookies from 'universal-cookie';
-import { Box, Typography, Avatar } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
-
+import { useAuth } from '../../contexts/AuthContext';
+import { Box, Typography, Avatar, Skeleton } from "@mui/material";
 
 const Profile = props => {
-    const {user, isAuthenticated, isLoading, getAccessTokenSilently} = useAuth0();
-    const [accessToken, setAccessToken] = useState(null);
-    const cookies = new Cookies();
-
-    useEffect(() => {
-        cookies.set("apiToken", accessToken, { path: '/' });
-        accessToken !== null && props.tokenCallback(accessToken);
-    }, [accessToken]);
-
-    const imgStyles = {
-        display: "block",
-        marginLeft: "auto",
-        marginRight: "auto"
-    };
-
-    const getAccessToken = async () => {
-        const token = await getAccessTokenSilently({
-            audience: `${process.env.REACT_APP_URL_ROOT}/api/`,
-            scope: "read:current_user",
-            "grant_type":"client_credentials"
-        });
-        setAccessToken(token);
-    };
-
-    if (isLoading) {
-        return <div>Loading ...</div>;
-    } else {
-        getAccessToken();
-    }
-
+  const { user, isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
     return (
-        isAuthenticated && (
-            <Box sx={{display:'flex', alignItems: 'center', gap:1, ml: 2, my:2}}>
-                {/* <img src={user.picture} alt={user.name} style={imgStyles}/> */}
-                <Avatar><PersonIcon/></Avatar>
-                <Typography variant='h6' sx={{fontWeight: 500}}>{user.name}</Typography>
-            </Box>
-        )
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Skeleton variant="circular" width={40} height={40} />
+        <Box sx={{ flex: 1 }}>
+          <Skeleton variant="text" width="80%" height={24} />
+          <Skeleton variant="text" width="60%" height={16} />
+        </Box>
+      </Box>
     );
+  }
+  if (!isAuthenticated) {
+    return null;
+  }
+  const displayName = user?.user_name || user?.email || 'User';
+  const email = user?.email || ''; 
+  const getAvatarColor = () => {
+    const colors = ['#1976d2', '#dc004e', '#2e7d32', '#ed6c02', '#9c27b0', '#0288d1', '#d32f2f', '#7b1fa2'];
+    const index = (email?.length || 0) % colors.length;
+    return colors[index];
+  };
+  return (
+    <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid', borderColor: 'divider', mb: 1 }}>
+      <Avatar  sx={{ bgcolor: getAvatarColor(), width: 40, height: 40, fontSize: '1rem', fontWeight: 600 }} >
+      </Avatar>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="subtitle2" noWrap fontWeight={600}>
+          {displayName}
+        </Typography>
+        <Typography variant="caption" noWrap color="text.secondary">
+          {email || 'No email'}
+        </Typography>
+      </Box>
+    </Box>
+  );
 };
 
 export default Profile;

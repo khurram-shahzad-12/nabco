@@ -4,15 +4,15 @@ import displaySnackState from '../customisedSnackBar/DisplaySnackState';
 import CustomisedSnackBar from '../customisedSnackBar/CustomisedSnackBar';
 import DataViewGrid from '../DataViewGrid/DataViewGrid';
 import { defaultSnackState, fetchAllEntriesAndSetRowData, getColumnDefs, fetchDropdownField, handleDeleteEntry, getAndOpenReportsInNewTab, } from '../formFunctions/FormFunctions';
-import CreateQuotationForm from './CreateQuotationForm';
-import { Edit, Delete, Print, Receipt, Visibility } from '@mui/icons-material';
+import { Edit, Delete, Print, Receipt, Visibility, SwapHoriz } from '@mui/icons-material';
 import axiosDefault from '../axiosDefault/axiosDefault';
 import { URL_API, URL_ROOT } from '../../configs/config';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '../../contexts/AuthContext';
 import moment from 'moment';
+import CreateQuotationForm from './CreateQuotationForm';
 
 const Quotations = () => {
-  const { user } = useAuth0();
+  const { user } = useAuth();
   const [sendingData, setSendingData] = useState(false);
   const [snackState, setSnackState] = useState(defaultSnackState);
   const [rowData, setRowData] = useState([]);
@@ -62,80 +62,37 @@ const Quotations = () => {
   };
   const handleConverttoInvoice = async (quotationId) => {
     const quotation = quotationList.find(q => q._id === quotationId);
-    if (!quotation) { 
-      displaySnackState('Quotation not found', 'error', setSnackState); 
-      return; 
-    }
-    
-    if (quotation.convertedToInvoice) { 
-      displaySnackState('This quotation has already been converted to an invoice', 'warning', setSnackState); 
-      return; 
-    }
-    
+    if (!quotation) { displaySnackState('Quotation not found', 'error', setSnackState); return; } 
+    if (quotation.convertedToInvoice) {  displaySnackState('This quotation has already been converted to an invoice', 'warning', setSnackState); 
+      return; }
     setConvertingQuotationId(quotationId);
     setSendingData(true);
-    
     try {
       let customerId = quotation.customer;
-      
-      // If no customer ID, try to find customer by name
       if (!customerId) {
         const customerName = quotation.customerInfo?.customer_name;
-        if (!customerName) {
-          displaySnackState('No customer information found in quotation', 'error', setSnackState);
-          return;
-        }
-        
-        // Search for existing customer by name
+        if (!customerName) { displaySnackState('No customer information found in quotation', 'error', setSnackState); return; }
         const existingCustomer = Object.values(customersList.map || {}).find(
           cust => cust.customer_name?.toLowerCase() === customerName.toLowerCase()
         );
-        
         if (existingCustomer) {
           customerId = existingCustomer._id;
-          // Update quotation with the found customer ID
-          await axios.put(`${URL_ROOT}${URL_API}/quotation/${quotation._id}`, { 
-            customer: customerId, 
-            lead: null 
-          });
+          await axios.put(`${URL_ROOT}${URL_API}/quotation/${quotation._id}`, { customer: customerId, lead: null });
         } else {
           displaySnackState(
-            `Customer "${customerName}" not found in customer list. Please register lead "${customerName}" as a customer first.`,
-            "error", 
-            setSnackState
-          ); 
+            `Customer "${customerName}" not found in customer list. Please register lead "${customerName}" as a customer first.`, "error", setSnackState ); 
           return;
         }
       }
-      
-      // Simplified payload for the conversion endpoint
-      const payload = {
-        quotationId: quotation._id,
-        customerId: customerId,
-        createdBy: user?.name || 'system'
-      };
-
-      // Call the conversion API
+      const payload = { quotationId: quotation._id, customerId: customerId, createdBy: user?.user_name || 'system' };
       const response = await axios.post(`${URL_ROOT}${URL_API}/quotation/converttoinvoice`, payload);
-      
       if (response.status === 200 || response.status === 201) {
         const result = response.data;
-        
-        displaySnackState(
-          `Successfully converted quotation to Invoice #${result.invoiceNumber || result.invoice?.sale_number || ''}`,
-          'success', 
-          setSnackState
-        );
-        
-        // Refresh the quotations list
+        displaySnackState( `Successfully converted quotation to Invoice #${result.invoiceNumber || result.invoice?.sale_number || ''}`, 'success', setSnackState );
         fetchAllQuotations();
-      } else {
-        displaySnackState('Failed to convert quotation to invoice', 'error', setSnackState);
-      }
+      } else { displaySnackState('Failed to convert quotation to invoice', 'error', setSnackState); }
     } catch (error) {
       console.error('Error converting quotation to invoice:', error);
-      
-      // Handle specific error messages from backend
       const errorMessage = error.response?.data?.message || error.message;
       displaySnackState(`Conversion failed: ${errorMessage}`, 'error', setSnackState);
     } finally {
@@ -144,7 +101,7 @@ const Quotations = () => {
     }
   };
   useEffect(() => { fetchLeads(); fetchAllQuotations(); fetchAllItems() }, []);
-  const onSelectionChanged = (event) => {
+    const onSelectionChanged = (event) => {
     const selectedNodes = event.api.getSelectedNodes();
     const ids = selectedNodes.map(node => node.data._id);
     setSelectedQuotationIds(ids);
@@ -159,7 +116,7 @@ const Quotations = () => {
   const handleRefresh = () => {
     setSelectedCustomer(null);
     setSelectedLead(null);
-    if (gridApi) { gridApi.deselectAll(); gridApi.refreshCells({ force: true }); }
+    if(gridApi) {gridApi.deselectAll(); gridApi.refreshCells({ force: true });}
     setSelectedQuotationIds(null);
   };
   const checkboxColumnDef = {
@@ -172,36 +129,13 @@ const Quotations = () => {
     maxWidth: 60,
   };
 
-  const handleEdit = (quotation) => {
-    setEditingQuotation(quotation);
-    setDialogOpen(true);
-  }
-  // const ActionCellRenderer = (params) => (
-  //   <Box sx={{ display: 'flex', gap: 1 }}>
-  //     <IconButton
-  //       color="primary"
-  //       size="small"
-  //       onClick={(e) => { handleEdit(params.data); }}
-  //     >
-  //       <Edit />
-  //     </IconButton>
-  //     <IconButton
-  //       color="error"
-  //       size="small"
-  //       onClick={(e) => { handleDelete(params.data._id); }}
-  //     >
-  //       <Delete />
-  //     </IconButton>
-  //   </Box>
-  // );
-  const ActionCellRenderer = (params) => {
+ const handleEdit = (quotation) => {
+  setEditingQuotation(quotation);
+  setDialogOpen(true);
+ }
+ const ActionCellRenderer = (params) => {
     const isConverting = convertingQuotationId === params.data._id;
-    
-    // Check if quotation can be converted
-    const canConvert = params.data.customerInfo && 
-                      params.data.customerInfo.customer_name && 
-                      !params.data.convertedToInvoice;
-
+    const canConvert = params.data.customerInfo && params.data.customerInfo.customer_name && !params.data.convertedToInvoice;
     return (
       <Box sx={{ display: 'flex', gap: 1 }}>
         <IconButton
@@ -228,7 +162,7 @@ const Quotations = () => {
             disabled={isConverting || sendingData}
             title="Convert to Invoice"
           >
-            <Receipt />
+            <SwapHoriz />
           </IconButton>
         )}
         {params.data.convertedToInvoice && params.data.invoiceId && (
@@ -245,14 +179,14 @@ const Quotations = () => {
     );
   };
   const colFields = [
-    { headerName: "Quotation No", field: "quotationNo", widht: 50 },
+    {headerName: "Quotation No", field: "quotationNo", width: 50},
     { headerName: "Customer Name", field: "customerInfo.customer_name", width: 250 },
     { headerName: "Phone", field: "customerInfo.phone", width: 150 },
     { headerName: "Total (Excl VAT)", field: "total_no_vat", width: 150 },
     { headerName: "VAT", field: "vat_total", width: 120 },
     { headerName: "Total (Incl VAT)", field: "total_incl_vat", width: 160 },
-    { headerName: "Created Date", field: "createdAt", width: 180, valueFormatter: (params) => new Date(params.value).toLocaleDateString("en-GB") },
-    { headerName: "Actions", field: "id", width: 120, cellRenderer: ActionCellRenderer, sortable: false, filter: false }
+    { headerName: "Created Date", field: "createdAt", width: 180, valueFormatter: (params) => new Date(params.value).toLocaleDateString() },
+    { headerName: "Actions", field: "id", width: 160, cellRenderer: ActionCellRenderer, sortable: false, filter: false }
   ];
   const columnDefs = [checkboxColumnDef, ...colFields];
   const productsMap = {};
@@ -263,9 +197,9 @@ const Quotations = () => {
     (cust) => cust.active && !cust.on_hold
   );
   const leadOptions = Object.values(leadsList.map || {});
-  const printSelectedQuotations = async () => {
-    if (selectedQuotationIds.length === 0) { displaySnackState('No quotations selected', 'warning', setSnackState); return; }
-    const payload = { ids: selectedQuotationIds }
+   const printSelectedQuotations = async () => {
+    if (selectedQuotationIds.length === 0) { displaySnackState('No quotations selected', 'warning', setSnackState); return;}
+    const payload = {ids: selectedQuotationIds}
     getAndOpenReportsInNewTab(payload, "quotation", "printSelected.pdf", setSnackState);
   };
   return (
@@ -301,11 +235,11 @@ const Quotations = () => {
           }}
           renderInput={(params) => (
             <TextField
-              {...params}
-              label="Select Lead"
-              variant="outlined"
-              size="small"
-              sx={{ width: 300 }}
+            {...params}
+            label="Select Lead"
+            variant="outlined"
+            size="small"
+            sx={{ width: 300 }}
             />
           )}
           disabled={leadsList.loaded === false}
@@ -326,14 +260,14 @@ const Quotations = () => {
         >
           Print Selected ({selectedQuotationIds?.length})
         </Button>
-        <Button onClick={handleRefresh} variant='contained'>Reload</Button>
+          <Button onClick={handleRefresh} variant='contained'>Reload</Button>
       </Box>
       <Box sx={{ height: '75vh' }}>
-        <DataViewGrid
-          rowData={quotationList}
-          columnDefs={columnDefs}
-          loading={sendingData}
-          agGridProps={{ rowSelection: 'multiple', suppressRowClickSelection: true, onSelectionChanged: onSelectionChanged, onGridReady: (params) => setGridApi(params.api) }}
+        <DataViewGrid 
+        rowData={quotationList} 
+        columnDefs={columnDefs} 
+        loading={sendingData} 
+        agGridProps={{rowSelection: 'multiple',suppressRowClickSelection: true, onSelectionChanged: onSelectionChanged, onGridReady: (params) => setGridApi(params.api)}}
         />
       </Box>
       <Dialog open={dialogOpen} onClose={handleCloseDialog} fullScreen>

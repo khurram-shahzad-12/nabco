@@ -39,6 +39,26 @@ const ChatDialog = ({
     const [selectedMessageForAction, setSelectedMessageForAction] = useState(null);
     const openEmojiPicker = Boolean(emojiAnchorEl);
 
+    const getUserDisplayName = (userId) => {
+        const activeUser = activeUsers.find(u => u.id === userId);
+        if(activeUser) return activeUser.user_name || userId;
+        const inactiveUser = inactiveUsersWithMessages.find(u => u.id === userId);
+        if(inactiveUser) return inactiveUser.user_name || userId;
+        const otherUser = otherUsers.find(u => u.id === userId);
+        if(otherUser) return otherUser.user_name || userId;
+        return userId;
+    }
+
+    const genUserAvatarColor = (userId) => {
+        if(activeUsers.find(u => u.id === userId)) return 'green';
+        if(inactiveUsersWithMessages.find(u => u.id === userId)) return 'orange';
+        return 'gray';
+    }
+
+    const genUserAvatarLetter = (userId) => {
+        const name = getUserDisplayName(userId);
+        return name?.[0]?.toUpperCase() || "U" 
+    }
     const handleToggleEmojiPicker = (event) => {
         setEmojiAnchorEl(event.currentTarget);
     };
@@ -50,6 +70,8 @@ const ChatDialog = ({
     const handleEmojiClick = (emojiData) => {
         setNewMessage(prev => prev + emojiData.emoji);
     };
+
+    const selectedUserDisplayName = selectedUser ? getUserDisplayName(selectedUser) : '';
     return (
         <Dialog open={messagesOpen}
             onClose={() => { setMessagesOpen(false); setSelectedUser(null); setMessages([]); setHasMore(true); setLoadingMore(false); }}
@@ -58,7 +80,7 @@ const ChatDialog = ({
             sx={{ '& .MuiDialog-paper': { height: '80vh' } }}
         >
             <DialogTitle>
-                {process.env.REACT_APP_AUTH0_DOMAIN.startsWith("development-spice-direct")?'SDW Chat':'Nabco Chat'}
+                {process.env.REACT_APP_TYPE === "development" ? 'Nabco Chat':'Nabco Chat'}
             </DialogTitle>
             <DialogContent sx={{ p: 0, display: 'flex', height: '100%', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -84,9 +106,9 @@ const ChatDialog = ({
                                     <Typography variant='subtitle2' sx={{ pl: 2, pt: 1, color: 'text.secondary', fontWeight: 'bold' }}>Messages</Typography>
                                     {inactiveUsersWithMessages.map(user => (
                                         <ListItemButton
-                                            key={user.auth0Id}
-                                            selected={selectedUser === user.auth0Id}
-                                            onClick={() => { handleSelectedUser(user.auth0Id) }}
+                                            key={user.id}
+                                            selected={selectedUser === user.id}
+                                            onClick={() => { handleSelectedUser(user.id) }}
                                             sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', pl: 2 }}
                                         >
                                             <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'orange' }}>
@@ -95,10 +117,10 @@ const ChatDialog = ({
                                             <ListItemText
                                                 primary={<>
                                                     {user.user_name}
-                                                    {unreadMap[user.auth0Id] && (
+                                                    {unreadMap[user.id] && (
                                                         <Badge
                                                             sx={{ ml: 1.5 }}
-                                                            badgeContent={unreadMap[user.auth0Id]}
+                                                            badgeContent={unreadMap[user.id]}
                                                             color='error'
                                                         />
                                                     )}
@@ -113,9 +135,9 @@ const ChatDialog = ({
                             {otherUsers.length > 0 && (<><Typography variant="subtitle2" sx={{ pl: 2, pt: 1, color: 'text.secondary', fontWeight: 'bold' }}>All Users</Typography>
                                 {otherUsers.map(user => (
                                     <ListItemButton
-                                        key={user.auth0Id}
-                                        selected={selectedUser === user.auth0Id}
-                                        onClick={() => { handleSelectedUser(user.auth0Id) }}
+                                        key={user.id}
+                                        selected={selectedUser === user.id}
+                                        onClick={() => { handleSelectedUser(user.id) }}
                                         sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', pl: 2 }}
                                     >
                                         <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'grey' }}>
@@ -139,15 +161,15 @@ const ChatDialog = ({
                         {selectedUser ? (
                             <>
                                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-                                    <Avatar sx={{ mr: 1 }}>{activeUsers.find(u => u.id === selectedUser)?.name?.[0]?.toUpperCase() || "U"}</Avatar>
+                                    <Avatar sx={{ mr: 1, bgcolor: genUserAvatarColor(selectedUser) }}>{genUserAvatarLetter(selectedUser)}</Avatar>
                                     <Typography variant="subtitle1">
-                                        {activeUsers.find(u => u.id === selectedUser)?.name || otherUsers.find(u => u.auth0Id === selectedUser)?.user_name || selectedUser}
+                                        {selectedUserDisplayName}
                                     </Typography>
                                 </Box>
                                 <Box ref={messagesContainerRef} sx={{ flexGrow: 1, overflow: 'auto', p: 2, display: 'flex', flexDirection: 'column' }}>
                                     {loadingMore && (<Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}><CircularProgress size={20} /></Box>)}
                                     {messages.map((msg, index) => {
-                                        const myUserId = cookies.get("apiToken") ? jwtDecode(cookies.get("apiToken")).sub : null;
+                                        const myUserId = cookies.get("apitoken") ? jwtDecode(cookies.get("apitoken")).id : null;
                                         const isMyMessage = msg.senderId === myUserId;
                                         return (
                                             <Box key={msg._id || index}

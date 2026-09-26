@@ -14,9 +14,8 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange,
-    currentUserHasPermissions
 } from "../../components/formFunctions/FormFunctions";
-
+import { useAuth } from '../../contexts/AuthContext';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
@@ -30,12 +29,13 @@ import cardStyles from "../../components/PopupCardDialogStyles/PopupCardDialogSt
 const API_NAME = '/customer-tag';
 
 export const CustomerTag = () => {
+    const {hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [rowData, setRowData] = useState([]);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_CUSTOMER_TAGS_CLAIM];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_CUSTOMER_TAGS_CLAIM;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -114,7 +114,7 @@ export const CustomerTag = () => {
             </Card>
         </div>
         </Dialog>
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Tag</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Tag</Button>
         <Button variant="contained" onClick={fetchAllCustomerTags}>Reload</Button>
         <DataViewGrid rowData={rowData} columnDefs={colDefs} loading={sendingData} />
     </div>

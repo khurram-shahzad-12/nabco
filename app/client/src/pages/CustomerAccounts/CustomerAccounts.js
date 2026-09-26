@@ -6,7 +6,6 @@ import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import DatePicker from "@mui/lab/DatePicker";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import {
-    currentUserHasPermissions,
     daysMap,
     defaultLoadedFieldData,
     defaultSnackState,
@@ -17,11 +16,12 @@ import {Button, TextField} from "@mui/material";
 import moment from "moment";
 import ListInvoicesModal from "../../components/ListInvoicesModal/ListInvoicesModal";
 import AccountsTotalModal from "../../components/AccountsTotalsModal/AccountsTotalModal";
-
+import { useAuth } from '../../contexts/AuthContext';
 const API_NAME = '/invoice/getCustomerAccountData';
 
 export const CustomerAccounts = () => {
-    const requiredCSVPermission = [process.env.REACT_APP_CUSTOMER_ACCOUNTS_CSV_PERMISSION];
+    const {hasPermission} = useAuth();
+    const requiredCSVPermission = process.env.REACT_APP_CUSTOMER_ACCOUNTS_CSV_PERMISSION;
     const [accountTotalsAlertModalOpen, setAccountTotalsAlertModalOpen] = useState(false);
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [sendingData, setSendingData] = useState(false);
@@ -231,8 +231,8 @@ export const CustomerAccounts = () => {
                 <Button variant="contained" onClick={fetchAllItems}>Reload</Button>
             </div>
         </div>
-        {currentUserHasPermissions(requiredCSVPermission) && <Button variant="contained" onClick={csvAction} disabled={sendingData}>CSV</Button>}
-        {currentUserHasPermissions(requiredCSVPermission) && <Button variant="contained" onClick={() => setAccountTotalsAlertModalOpen(true)} disabled={sendingData}>Totals</Button>}
+        {hasPermission(requiredCSVPermission) && <Button variant="contained" onClick={csvAction} disabled={sendingData}>CSV</Button>}
+        {hasPermission(requiredCSVPermission) && <Button variant="contained" onClick={() => setAccountTotalsAlertModalOpen(true)} disabled={sendingData}>Totals</Button>}
         <div style={{height: "80%", marginTop: "2em"}}>
             <DataViewGrid
                 rowData={rowData}

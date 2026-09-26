@@ -36,7 +36,7 @@ const CRMDialog = ({
     onSave,
     onAddActivity,
     requiredWritePermissions,
-    currentUserHasPermissions,
+    hasPermission,
     stageOptions,
     leadSourceOptions,
     salesReps,
@@ -191,7 +191,7 @@ const CRMDialog = ({
                                                     variant="contained"
                                                     startIcon={<AddIcon />}
                                                     onClick={onSave}
-                                                    disabled={!currentUserHasPermissions(requiredWritePermissions)}
+                                                    disabled={!hasPermission(requiredWritePermissions)}
                                                 >
                                                     Save Changes
                                                 </Button>
@@ -258,7 +258,7 @@ const CRMDialog = ({
                                                     variant="contained"
                                                     startIcon={<AddIcon />}
                                                     onClick={onAddActivity}
-                                                    disabled={!currentUserHasPermissions(requiredWritePermissions) || !newActivityDescription.trim()}
+                                                    disabled={!hasPermission(requiredWritePermissions) || !newActivityDescription.trim()}
                                                 >
                                                     Add Activity
                                                 </Button>

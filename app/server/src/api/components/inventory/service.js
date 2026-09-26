@@ -31,7 +31,7 @@ const removeInventoryFromApp = async (id) => {
 const checkInventory = (query = {}) => {
     return database.exists(Inventory, query);
 };
-const fetchInventory = (query = {}, projection = ['-item_image'], sort = { name: 1 }, limit = 0) => {
+const fetchInventory = async(query = {}, projection = ['-item_image'], sort = { name: 1 }, limit = 0) => {
     return database.find(Inventory, query, projection, sort, limit);
 };
 const fetchOneItemFromInventory = (query = {}, projection = {}, sort = { name: 1 }, limit = 0) => {

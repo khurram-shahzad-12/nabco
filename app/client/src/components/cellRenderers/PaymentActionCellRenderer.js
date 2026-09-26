@@ -14,7 +14,7 @@ export const PaymentActionCellRenderer = (props) => {
 
 	const editAction = () => {
 		props.setEditModeCB(true);
-		props.setFormValuesCB({...props.data, recorded_by: props.user.name});
+		props.setFormValuesCB({...props.data, recorded_by: props.user.user_name});
 	};
 
 	return <Stack direction="row" spacing={1}>

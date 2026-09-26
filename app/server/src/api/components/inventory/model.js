@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const SERVICE_INVENTORY_CATEGORY = require('./../inventory_category/service');
 const SERVICE_INVENTORY_TAG = require('./../inventory_tag/service');
 const SERVICE_INVENTORY_SUPPLIER = require('./../inventory_supplier/service');
+const SERVICE_COUNTER = require('./../counter/service');
 const SERVICE_VAT = require('./../vat/service');
 const MODEL_NAME = 'Inventory';
 const COLLECTION_NAME = 'inventory';
@@ -33,9 +34,10 @@ const verifyVAT = async (value) => {
 };
 
 const SCHEMA_INVENTORY = new mongoose.Schema({
-    name:       {type: String, required: true, trim: true, unique: true},
-    barcode:    {type: Number, unique: true, index: true},
-    active:     {type: Boolean, required: true, default: true, index: true,
+    article:    {type: String, trim: true, index: true},
+    name:       {type: String, index: true, trim: true,},
+    barcode:    {type: String, index: true},
+    active:     {type: Boolean, default: true, index: true,
         validate: {validator: (value) => [false, true].includes(value)},
     },
 
@@ -48,7 +50,7 @@ const SCHEMA_INVENTORY = new mongoose.Schema({
         validate: {validator: verifyInventoryTags},
     },
     vat: {
-        type: mongoose.Schema.Types.ObjectId, ref: 'VAT', required: true, index: true,
+        type: mongoose.Schema.Types.ObjectId, ref: 'VAT', default: null, index: true,
         validate: {validator: verifyVAT},
     },
     supplier1: {
@@ -64,25 +66,38 @@ const SCHEMA_INVENTORY = new mongoose.Schema({
         validate: {validator: verifyInventorySupplier},
     },
 
-    quantity:           {type: Number, required: true, default: 0},
-    alert_quantity:     {type: Number, required: true, default: 0},
+    quantity:           {type: Number, default: 0},
+    alert_quantity:     {type: Number, default: 0},
     weight_grams:       {type: Number, required: false, default: 0, min: 0},
     weight_kg:          {type: Number, required: false, default: 0, min: 0},
-    cost_price:         {type: Number, required: true},
-    min_sale_price:     {type: Number, required: true},
-    default_sale_price: {type: Number, required: true},
-    collection_price:   {type: Number, required: true},
-    prices_last_updated:{type: Date, required: true, default: moment().format('YYYY-MM-DD'), index: true},
+    cost_price:         {type: Number, default: 0},
+    min_sale_price:     {type: Number, default: 0},
+    default_sale_price: {type: Number, default: 0},
+    collection_price:   {type: Number, default: 0},
+    list_price:         {type: Number, default: 0},
+    discount_percent:   {type: Number, default: 0, min: 0, max: 100},
+    prices_last_updated:{type: Date, default: moment().format('YYYY-MM-DD'), index: true},
     item_image:         {type: String},
     aisle:              {type:String},
     location:           {type:String},
     color:               { type: String, default: "", trim: true },
     ral:                 { type: String, default: "", trim: true },
-    size:                { type: String, default: "", trim: true },
+    product_size:                { type: [String], default: [], },
 
 }, {
     collection: COLLECTION_NAME,
     versionKey: false,
+});
+SCHEMA_INVENTORY.pre('save', async function (next) {
+    if (this.isNew && !this.article) {
+        try {
+            const seq = await SERVICE_COUNTER.getArticleNo('inventory_article');
+            this.article = `nabco_${seq}`;
+        } catch (err) {
+            return next(err);
+        }
+    }
+    next();
 });
 
 const Inventory = mongoose.model(MODEL_NAME, SCHEMA_INVENTORY);

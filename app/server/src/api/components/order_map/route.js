@@ -1,9 +1,10 @@
 const express = require('express');
 const controller = require('./controller');
+const {authenticate} = require('../../../middleware/auth');
 const router = express.Router();
 
-router.get('/', controller.fetchOrderMapData);
-router.put('/:id',controller.updateRoute);
-router.post('/', controller.unassignedroute);
+router.get('/',authenticate, controller.fetchOrderMapData);
+router.put('/:id',authenticate, controller.updateRoute);
+router.post('/',authenticate, controller.unassignedroute);
 
 module.exports = router;

@@ -14,7 +14,6 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange,
-    currentUserHasPermissions
 } from "../../components/formFunctions/FormFunctions";
 
 import Card from "@mui/material/Card";
@@ -22,7 +21,7 @@ import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import {Button, Dialog} from "@mui/material";
-
+import { useAuth } from '../../contexts/AuthContext';
 import DataViewGrid from "../../components/DataViewGrid/DataViewGrid";
 import DialogClosingTitleBar from "../../components/DialogClosingTitleBar/DialogClosingTitleBar";
 import cardStyles from "../../components/PopupCardDialogStyles/PopupCardDialogStyles.module.css";
@@ -30,12 +29,13 @@ import cardStyles from "../../components/PopupCardDialogStyles/PopupCardDialogSt
 const API_NAME = '/payment-term';
 
 export const PaymentTerm = () => {
+    const {hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [rowData, setRowData] = useState([]);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_PAYMENT_TERM_CLAIM];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_PAYMENT_TERM_CLAIM;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -113,7 +113,7 @@ export const PaymentTerm = () => {
             </Card>
         </div>
         </Dialog>
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Payment Term</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Payment Term</Button>
         <Button variant="contained" onClick={fetchAllPaymentTerms}>Reload</Button>
         <DataViewGrid rowData={rowData} columnDefs={colDefs} loading={sendingData} />
     </div>

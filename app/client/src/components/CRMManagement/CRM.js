@@ -8,7 +8,6 @@ import {
   getDefaultFormFields,
   handleDataSubmit,
   handleDataEditSubmit,
-  currentUserHasPermissions,
   handleDeleteEntry
 } from "../formFunctions/FormFunctions";
 import EditIcon from "@mui/icons-material/Edit";
@@ -35,6 +34,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import { useNavigate } from "react-router-dom";
 import axiosDefault from '../axiosDefault/axiosDefault';
 import CRMDialog from './CRMDialog';
+import { useAuth } from '../../contexts/AuthContext';
 
 const API_LEAD = '/lead';
 const API_SALES_REPS = '/customerSalesRep';
@@ -44,6 +44,7 @@ const API_ACTIVITIES = '/activities';
 
 export const CRM = ({ openAddDialog, onDialogClose, fetchAllLeads, rowData, snackState, setSnackState }) => {
   const axios = axiosDefault();
+  const {hasPermission} = useAuth();
   const [sendingData, setSendingData] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [crmDialogOpen, setCrmDialogOpen] = useState(false);
@@ -51,7 +52,7 @@ export const CRM = ({ openAddDialog, onDialogClose, fetchAllLeads, rowData, snac
   const [salesReps, setSalesReps] = useState([]);
   const [customers, setCustomers] = useState([]);
   const navigate = useNavigate();
-  const requiredWritePermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION];
+  const requiredWritePermissions = process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION;
 
   const [formValues, setFormValues] = useState({});
   const [newActivityType, setNewActivityType] = useState('note');
@@ -177,6 +178,7 @@ export const CRM = ({ openAddDialog, onDialogClose, fetchAllLeads, rowData, snac
     setEditMode(false);
     setFormValues({});
     setNewActivityDescription('');
+    fetchAllLeads();
   };
   const handleCloseDateChange = (date) => {
     setFormValues(prev => ({
@@ -290,11 +292,23 @@ export const CRM = ({ openAddDialog, onDialogClose, fetchAllLeads, rowData, snac
       return stage ? (<Chip label={stage} color={color} size='small' sx={{ fontWeight: 500 }} />) : ("");
     }
   };
+  const lastActivityColDef = {
+    field: "last_activity_at",
+    headerName: "Recent Activity",
+    width: 140,
+    sort: "desc",
+    valueFormatter: (params) => {
+      if (!params.value) return '';
+      const date = new Date(params.value);
+
+      return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+    }
+  };
   const colDefsWithWidth = baseColDefs.map(colDef => {
     const fieldConfig = leadFields.find(f => f.field === colDef.field);
     return fieldConfig?.gridWidth ? { ...colDef, width: fieldConfig.gridWidth } : colDef;
   });
-  const colDefs = [...colDefsWithWidth, createdAtColDef, stageColDef, actionColDef];
+  const colDefs = [...colDefsWithWidth, createdAtColDef, stageColDef, lastActivityColDef ,actionColDef];
   const stageOptions = ['prospecting', 'not interested', 'qualified', 'proposal', 'negotiation', 'closed Win', 'closed Lost'];
   const leadSourceOptions = ['Website', 'Referral', 'Cold Call', 'Other'];
   const activityTypes = [
@@ -414,7 +428,7 @@ export const CRM = ({ openAddDialog, onDialogClose, fetchAllLeads, rowData, snac
         onSave={handleSaveCRM}
         onAddActivity={handleAddActivity}
         requiredWritePermissions={requiredWritePermissions}
-        currentUserHasPermissions={currentUserHasPermissions}
+        hasPermission={hasPermission}
         stageOptions={stageOptions}
         leadSourceOptions={leadSourceOptions}
         salesReps={salesReps}
