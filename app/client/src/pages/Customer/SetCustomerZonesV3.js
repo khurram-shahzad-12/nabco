@@ -3,7 +3,6 @@ import React, {useEffect, useState} from 'react';
 import displaySnackState from "../../components/customisedSnackBar/DisplaySnackState";
 import CustomisedSnackBar from "../../components/customisedSnackBar/CustomisedSnackBar";
 import {
-    currentUserHasPermissions,
     defaultSnackState,
     fetchAllEntriesAndSetRowData,
     formatWeightToString, getTotalItemsWeightInGrams, momentFormat
@@ -18,12 +17,14 @@ import Card from "@mui/material/Card";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import DatePicker from "@mui/lab/DatePicker";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
+import { useAuth } from '../../contexts/AuthContext';
 import moment from "moment";
 import _ from "lodash";
 
 const API_NAME = '/customer';
 
 export const SetCustomerZonesV3 = () => {
+    const {hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [selectedDate, setSelectedDate] = useState(moment(new Date()));
     const [zonesData, setZonesData] = useState([]);
@@ -34,7 +35,7 @@ export const SetCustomerZonesV3 = () => {
     const [invoices, setInvoices] = useState([]);
     const [mappedCustomersFilterValue, setMappedCustomersFilterValue] = useState({});
     const [removedCustomers, setRemovedCustomers] = useState([]);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM;
 
     const onDateChange = newDate => {
         setSelectedDate(moment(newDate));
@@ -259,7 +260,7 @@ export const SetCustomerZonesV3 = () => {
                     renderInput={(params) => <TextField {...params} />}
                 />
             </LocalizationProvider>
-            <Button variant="contained" onClick={saveChanges}style={{marginRight: "10em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Save Changes</Button>
+            <Button variant="contained" onClick={saveChanges}style={{marginRight: "10em"}} disabled={!hasPermission(requiredWritePermissions)}>Save Changes</Button>
             <Button variant="contained" onClick={fetchAllItems}>Reload</Button>
         </div>
 

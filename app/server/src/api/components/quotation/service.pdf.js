@@ -4,7 +4,7 @@ const SERVICE_INVENTORY = require("../inventory/service");
 const SERVICE_QUOTATION = require('../quotation/service');
 const currentConfig = require('../../../utils/appConfig');
 
-const addQuotationToPDF = (doc, quotation, imageMap) => {
+const addQuotationToPDF = (doc, quotation, imageMap, priceMap) => {
     const { customerInfo, items, total_no_vat, vat_total, total_incl_vat, quotationNo } = quotation;
     const marginLeft = 50;
     const marginRight = 50;
@@ -25,7 +25,7 @@ const addQuotationToPDF = (doc, quotation, imageMap) => {
     doc.font('Roboto-normal').fontSize(10);
     doc.text(customerInfo.customer_name, marginLeft, y); y += 15;
     doc.text(`Phone: ${customerInfo.phone}`, marginLeft, y); y += 30;
-    const colWidths = { image: 50, name: 250, qty: 60, unitPrice: 60, total: 60 };
+    const colWidths = { image: 40, name: 180, qty: 45, listPrice: 55, discount: 45, unitPrice: 55, total: 55 };
     let totalTableWidth = Object.values(colWidths).reduce((a, b) => a + b, 0);
     if (totalTableWidth > pageWidth) {
         const scale = pageWidth / totalTableWidth;
@@ -44,7 +44,9 @@ const addQuotationToPDF = (doc, quotation, imageMap) => {
         doc.text('Image', colX.image, y, { width: colWidths.image, align: 'center' });
         doc.text('Item', colX.name, y, { width: colWidths.name, align: 'center' });
         doc.text('Qty', colX.qty, y, { width: colWidths.qty, align: 'right' });
-        doc.text('Unit Price', colX.unitPrice, y, { width: colWidths.unitPrice, align: 'right' });
+        doc.text('List Price', colX.listPrice, y, { width: colWidths.listPrice, align: 'right' });
+        doc.text('Disc %',   colX.discount,  y, { width: colWidths.discount,  align: 'right' });
+        doc.text('NettPrice', colX.unitPrice, y, { width: colWidths.unitPrice, align: 'right' });
         doc.text('Total', colX.total, y, { width: colWidths.total, align: 'right' });
         drawLine(y + 12);
         y += 20;
@@ -52,8 +54,13 @@ const addQuotationToPDF = (doc, quotation, imageMap) => {
     const drawItemRow = (item) => {
         const name = pdfkit_service.cleantText(item.name || '');
         const qty = (item.quantity || 0).toString();
-        const unitPrice = item.rate.toFixed(2) || '0.00';
         const total = (item.quantity * item.rate * (1 + (item.tax || 0) / 100)).toFixed(2);
+        const pricing = priceMap[item.productId?.toString()] || {};
+        const lp = item.list_price != null ? +item.list_price : (pricing.list_price != null ? +pricing.list_price : null);
+        const dp = item.discount_percent != null ? +item.discount_percent : (pricing.discount_percent != null ? +pricing.discount_percent : null);
+        const listPrice = lp != null ? lp.toFixed(2) : '';
+        const discount = dp != null ? dp.toFixed(2) + '%' : '';
+        const NettPrice = item.rate.toFixed(2) || '0.00';
         const imgBuffer = imageMap[item.productId];
         const nameLayout = pdfkit_service.calculateWrappedText({
             doc,
@@ -89,7 +96,9 @@ const addQuotationToPDF = (doc, quotation, imageMap) => {
         });
         doc.font('Roboto-normal').fontSize(10);
         doc.text(qty, colX.qty, y, { width: colWidths.qty, align: 'right' });
-        doc.text(unitPrice, colX.unitPrice, y, { width: colWidths.unitPrice, align: 'right' });
+        doc.text(listPrice,  colX.listPrice, y, { width: colWidths.listPrice, align: 'right' });
+        doc.text(discount,   colX.discount,  y, { width: colWidths.discount,  align: 'right' });
+        doc.text(NettPrice, colX.unitPrice, y, { width: colWidths.unitPrice, align: 'right' });
         doc.text(total, colX.total, y, { width: colWidths.total, align: 'right' });
         y += rowHeight + 4;
     };
@@ -111,13 +120,38 @@ const addQuotationToPDF = (doc, quotation, imageMap) => {
     doc.text(`£${total_incl_vat.toFixed(2)}`, colX.total, y, { width: colWidths.total, align: 'right' });
     y += 30;
 };
+const buildPriceMap = async (productIds) => {
+    if (!productIds || productIds.length === 0) return {};
+    const unique = [...new Set(productIds.filter(Boolean).map(String))];
+    const items = await SERVICE_INVENTORY.fetchInventory(
+        { _id: { $in: unique } },
+        ['list_price', 'discount_percent']
+    );
+    const priceMap = {};
+    const arr = Array.isArray(items)
+        ? items
+        : (items instanceof Map ? [...items.values()] : Object.values(items || {}));
+    for (const it of arr) {
+        if (it && it._id) {
+            priceMap[it._id.toString()] = {
+                list_price: it.list_price,
+                discount_percent: it.discount_percent,
+            };
+        }
+    }
+    return priceMap;
+};
 
 const createQuotationPDF = async (data) => {
    const itemIds = data.items.map(item => item._id);
-   const imageMap = await SERVICE_INVENTORY.getMultipleImages(itemIds);
+   const productIds = data.items.map(item => item.productId);
+    const [imageMap, priceMap] = await Promise.all([
+        SERVICE_INVENTORY.getMultipleImages(itemIds),
+        buildPriceMap(productIds),
+    ]);
    const doc = pdfkit_service.createPDFDoc();
    pdfkit_service.registerFont(doc);
-   addQuotationToPDF(doc, data, imageMap);
+   addQuotationToPDF(doc, data, imageMap, priceMap);
    pdfkit_service.PDFFooter(doc);
    return doc;
 };
@@ -131,13 +165,16 @@ const printSelectedQuotations = async (quotationIds) => {
             quotation.items.forEach(item => allItemIds.push(item.productId));
         }
     });
-    const uniqueItemIds = [...new Set(allItemIds)];
-    const imageMap = await SERVICE_INVENTORY.getMultipleImages(uniqueItemIds);
+    const uniqueProductIds = [...new Set(allItemIds)];
+    const [imageMap, priceMap] = await Promise.all([
+        SERVICE_INVENTORY.getMultipleImages(uniqueProductIds),
+        buildPriceMap(uniqueProductIds),
+    ]);
     const doc = pdfkit_service.createPDFDoc();
     pdfkit_service.registerFont(doc);
     quotations.forEach((quotation, index) => {
         if (index > 0) { doc.addPage(); }
-        addQuotationToPDF(doc, quotation, imageMap);
+        addQuotationToPDF(doc, quotation, imageMap, priceMap);
     });
     pdfkit_service.PDFFooter(doc);
     return doc;

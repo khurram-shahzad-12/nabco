@@ -16,9 +16,8 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange,
-    currentUserHasPermissions
 } from "../../components/formFunctions/FormFunctions";
-
+import { useAuth } from '../../contexts/AuthContext';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
@@ -66,6 +65,7 @@ const TabPanel = (props) => {
 };
 export const Customer = () => {
     const axios = axiosDefault();
+    const {hasPermission} = useAuth();
     const location = useLocation();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -219,7 +219,6 @@ export const Customer = () => {
     const fetchCustomerById = async (id) => {
         try {
             const resp = await axios.get(`${process.env.REACT_APP_URL_ROOT}/api/customer/${id}`);
-            console.log(resp[0])
             if (resp.status == 200) { return resp.data[0]; } else { displaySnackState(`Failed to saved, Try Again`, "error", setSnackState); }
         } catch (error) {
             console.log(error)
@@ -307,15 +306,15 @@ export const Customer = () => {
             reset(defaultFormState);
             setDialogOpen(false);
         }
-        setCustomerTags(formValues.tags);
-        setOrderTakingDays(formValues.order_taking_days);
-        setPaymentTakingDays(formValues.payment_taking_days);
-        setSelectedZones(formValues.zones);
-        setPaymentTerm(formValues.payment_term);
-        setPaymentContactMethod(formValues.payment_contact_method);
-        setPaymentMethod(formValues.payment_method);
-        setCustomerSalesRep(formValues.sales_rep);
-        setTeleCustomerSalesRep(formValues.tele_sales_rep);
+        setCustomerTags(formValues.tags ?? []);
+        setOrderTakingDays(formValues.order_taking_days ?? []);
+        setPaymentTakingDays(formValues.payment_taking_days ?? []);
+        setSelectedZones(formValues.zones ??  [null,null,null,null,null,null,null]);
+        setPaymentTerm(formValues.payment_term ?? '');
+        setPaymentContactMethod(formValues.payment_contact_method ?? '');
+        setPaymentMethod(formValues.payment_method ?? '');
+        setCustomerSalesRep(formValues.sales_rep ?? '');
+        setTeleCustomerSalesRep(formValues.tele_sales_rep ?? '');
         setLatitude(formValues.latitude || null)
         setLongitude(formValues.longitude || null)
     }, [editMode]);
@@ -489,7 +488,8 @@ export const Customer = () => {
             defaultState: false,
             changeListener: checkboxChangeListener,
             gridProps: {
-                cellRenderer: BooleanFieldCellRenderer
+                cellRenderer: BooleanFieldCellRenderer,
+                hide: true,
             }
         },
         {
@@ -500,7 +500,8 @@ export const Customer = () => {
             defaultState: false,
             changeListener: checkboxChangeListener,
             gridProps: {
-                cellRenderer: BooleanFieldCellRenderer
+                cellRenderer: BooleanFieldCellRenderer,
+                hide:true,
             }
         },
         {
@@ -511,7 +512,8 @@ export const Customer = () => {
             defaultState: true,
             changeListener: checkboxChangeListener,
             gridProps: {
-                cellRenderer: BooleanFieldCellRenderer
+                cellRenderer: BooleanFieldCellRenderer,
+                hide: true,
             }
         },
         {
@@ -747,12 +749,12 @@ export const Customer = () => {
             }
         },
     ];
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_CUSTOMERS_CLAIM];
-    const requiredPaymentTermsPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_PAYMENT_TERM];
-    const requiredCustomerHoldFlagPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_HOLD_FLAG];
-    const requiredCustomerPrintOutstandingBalancesPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_PRINT_OUTSTANDING_BALANCES];
-    const requiredWriteSalesRepPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION];
-    const requiredWriteShopKeysPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_SHOP_KEYS_PERMISSION];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_CUSTOMERS_CLAIM;
+    const requiredPaymentTermsPermissions = process.env.REACT_APP_WRITE_CUSTOMER_PAYMENT_TERM;
+    const requiredCustomerHoldFlagPermissions = process.env.REACT_APP_WRITE_CUSTOMER_HOLD_FLAG;
+    const requiredCustomerPrintOutstandingBalancesPermissions = process.env.REACT_APP_WRITE_CUSTOMER_PRINT_OUTSTANDING_BALANCES;
+    const requiredWriteSalesRepPermissions = process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION;
+    const requiredWriteShopKeysPermissions = process.env.REACT_APP_WRITE_CUSTOMER_SHOP_KEYS_PERMISSION;
     const defaultFormState = { ...getDefaultFormFields(customerData), latitude: null, longitude: null, account: "", credit_limit: 0 };
     const [formValues, setFormValues] = useState(defaultFormState);
     const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, true, requiredWritePermissions, null), ...getColumnDefs(customerData)];
@@ -819,7 +821,7 @@ export const Customer = () => {
                                                 onChange={salesRepChangeListener}
                                                 select
                                                 fullWidth
-                                                disabled={!currentUserHasPermissions(requiredWriteSalesRepPermissions)}
+                                                disabled={!hasPermission(requiredWriteSalesRepPermissions)}
                                             >
                                                 {
                                                     salesRepData.loaded ?
@@ -838,7 +840,7 @@ export const Customer = () => {
                                                 onChange={(e) => setTeleCustomerSalesRep(e.target.value)}
                                                 select
                                                 fullWidth
-                                                disabled={!currentUserHasPermissions(requiredWriteSalesRepPermissions)}
+                                                disabled={!hasPermission(requiredWriteSalesRepPermissions)}
                                             >
                                                 {
                                                     salesRepData.loaded ?
@@ -879,7 +881,7 @@ export const Customer = () => {
                                                                     name={"on_hold"}
                                                                     onChange={(e) => field.onChange(e.target.checked)}
                                                                     checked={field.value}
-                                                                    disabled={!currentUserHasPermissions(requiredCustomerHoldFlagPermissions)}
+                                                                    disabled={!hasPermission(requiredCustomerHoldFlagPermissions)}
                                                                 />
                                                             }
                                                             label={"On HOLD"} />
@@ -899,7 +901,7 @@ export const Customer = () => {
                                                                     name={"shop_keys"}
                                                                     onChange={(e) => field.onChange(e.target.checked)}
                                                                     checked={field.value}
-                                                                    disabled={!currentUserHasPermissions(requiredWriteShopKeysPermissions)}
+                                                                    disabled={!hasPermission(requiredWriteShopKeysPermissions)}
                                                                 />
                                                             }
                                                             label={"Shop Keys"} />
@@ -942,7 +944,7 @@ export const Customer = () => {
                                                                         field.onChange(e.target.checked);
                                                                     }}
                                                                     checked={field.value}
-                                                                    disabled={!currentUserHasPermissions(requiredCustomerPrintOutstandingBalancesPermissions)}
+                                                                    disabled={!hasPermission(requiredCustomerPrintOutstandingBalancesPermissions)}
                                                                 />
                                                             }
                                                             label={"Print Outstanding Balances"} />
@@ -962,7 +964,7 @@ export const Customer = () => {
                                                                     name={"do_not_call_for_payments"}
                                                                     onChange={(e) => field.onChange(e.target.checked)}
                                                                     checked={field.value}
-                                                                    disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                                    disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                                                 />
                                                             }
                                                             label={"DO NOT CALL FOR PAYMENTS"} />
@@ -1037,7 +1039,7 @@ export const Customer = () => {
                                                 select
                                                 fullWidth
                                                 required
-                                                disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                             >
                                                 {
                                                     paymentTermsData.loaded ?
@@ -1110,7 +1112,7 @@ export const Customer = () => {
                                                 onChange={paymentMethodChangeListener}
                                                 select
                                                 fullWidth
-                                                disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                             >
                                                 <MenuItem value={"Card"} key={"Card"}>Card</MenuItem>,
                                                 <MenuItem value={"Cash"} key={"Cash"}>Cash</MenuItem>,
@@ -1179,7 +1181,7 @@ export const Customer = () => {
                                                         autoComplete="off"
                                                         fullWidth
                                                         type={"text"}
-                                                        disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                        disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                                     />
                                                 }
                                                 name="payment_contact_name"
@@ -1246,7 +1248,7 @@ export const Customer = () => {
                                                 onChange={paymentContactMethodChangeListener}
                                                 select
                                                 fullWidth
-                                                disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                             >
                                                 <MenuItem value="Call">Call</MenuItem>
                                                 <MenuItem value="Whatsapp">Whatsapp</MenuItem>
@@ -1316,7 +1318,7 @@ export const Customer = () => {
                                                         autoComplete="off"
                                                         fullWidth
                                                         type={"text"}
-                                                        disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                        disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                                     />
                                                 }
                                                 name="payment_contact_detail"
@@ -1505,7 +1507,7 @@ export const Customer = () => {
                                                     <FormGroup row>
                                                         {
                                                             daysMap?.map((value, index) => {
-                                                                return <FormControlLabel control={<Checkbox checked={Array.isArray(paymentTakingDays) && paymentTakingDays.includes(index)} name={"payment_taking_days"} id={index} disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)} />} label={value} onChange={event => multiCheckboxChangeListener(event, paymentTakingDays, setPaymentTakingDays)} />
+                                                                return <FormControlLabel control={<Checkbox checked={Array.isArray(paymentTakingDays) && paymentTakingDays.includes(index)} name={"payment_taking_days"} id={index} disabled={!hasPermission(requiredPaymentTermsPermissions)} />} label={value} onChange={event => multiCheckboxChangeListener(event, paymentTakingDays, setPaymentTakingDays)} />
                                                             })
                                                         }
                                                     </FormGroup>
@@ -1524,7 +1526,7 @@ export const Customer = () => {
                                                             multiline
                                                             rows={2}
                                                             type={"text"}
-                                                            disabled={!currentUserHasPermissions(requiredPaymentTermsPermissions)}
+                                                            disabled={!hasPermission(requiredPaymentTermsPermissions)}
                                                         />}
                                                     name="payment_comments"
                                                     control={control}
@@ -1548,7 +1550,7 @@ export const Customer = () => {
                 </TabPanel>
             </Box>
         </Dialog>
-        <Button variant="contained" onClick={handleOpenDialog} style={{ marginRight: "1em" }} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Customer</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{ marginRight: "1em" }} disabled={!hasPermission(requiredWritePermissions)}>Add Customer</Button>
         <Button variant="contained" onClick={fetchAllItems}>Reload</Button>
         <DataViewGrid rowData={rowData} columnDefs={colDefs} loading={sendingData} />
         {/* {mapModalOpen && <MapModal handleCloseMapModal={handleCloseMapModal} mapModalOpen={mapModalOpen} onSave={handleMapSave} latitude={latitude || '55.84869'} longitude={longitude || '-4.21531'} />} */}

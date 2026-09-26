@@ -28,6 +28,8 @@ const SCHEMA_INVOICE_ITEM = new MONGOOSE.Schema({
     tax:        {type: Number, required: true, min: 0},
     weight_grams: {type: Number, required: true, default: 0, min: 0},
     weight_kg:  {type: Number, required: true, default: 0, min: 0},
+    list_price:         {type: Number, default: 0, min: 0},
+    discount_percent:   {type: Number, default: 0, min: 0, max: 100},
 }, {
     versionKey: false,
 });

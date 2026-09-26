@@ -13,7 +13,6 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange,
-    currentUserHasPermissions,
     fetchDropdownField,
     momentFormat,
     handleNumberInputChange,
@@ -27,7 +26,7 @@ import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import {Button, Dialog, Box, TextField} from "@mui/material";
-
+import { useAuth } from '../../contexts/AuthContext';
 import DataViewGrid from "../../components/DataViewGrid/DataViewGrid";
 import DialogClosingTitleBar from "../../components/DialogClosingTitleBar/DialogClosingTitleBar";
 import cardStyles from "../../components/PopupCardDialogStyles/PopupCardDialogStyles.module.css";
@@ -46,6 +45,7 @@ import axiosDefault from '../../components/axiosDefault/axiosDefault';
 const API_NAME = '/supplier-invoices';
 
 export const SupplierInvoices = () => {
+    const {hasPermission} = useAuth()
     const axios = axiosDefault();
     const [sendingData, setSendingData] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,7 +59,7 @@ export const SupplierInvoices = () => {
     const [startDate, setStartDate] = useState(moment("2024-12-01").format(momentFormat));
     const [endDate, setEndDate] = useState(moment(new Date()).format(momentFormat));
     const [gridApi,setGridApi] = useState(null);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_INVENTORY_SUPPLIERS_CLAIM];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_INVENTORY_SUPPLIERS_CLAIM;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -526,7 +526,7 @@ export const SupplierInvoices = () => {
         </div>
         </Dialog>
         <SupplierPaymentsForm open={paymentsModalData.open} handleClose={handleClosePaymentsForm} data={paymentsModalData.data} postSubmitCallback={postPaymentSubmitCallback} />
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Supplier Invoice</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Supplier Invoice</Button>
         <Button variant="contained" onClick={fetchAllData} style={{marginRight: "1em"}}>Reload</Button>
         <Button variant="contained" disabled={selectedInvoices.length === 0} style={{marginRight: "1em"}} onClick={openSelectedSupplierInvoicesPDF}>Print Invoices{getSelectedInvoicesCount()}</Button>
         <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={openSelectedSupplierInvoicesVAT_PDF}>Print VAT{getSelectedInvoicesCount()}</Button>

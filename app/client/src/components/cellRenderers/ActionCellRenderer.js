@@ -5,9 +5,11 @@ import ImageIcon from '@mui/icons-material/Image';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import Stack from '@mui/material/Stack';
-import {currentUserHasPermissions, handleDeleteEntry} from "../formFunctions/FormFunctions";
+import { handleDeleteEntry} from "../formFunctions/FormFunctions";
+import { useAuth } from '../../contexts/AuthContext';
 
-export const btnActionCellRenderer = (props) => {
+export const BtnActionCellRenderer = (props) => {
+	const {hasPermission} = useAuth();
 	const deleteAction = () => {
 		if (window.confirm("Are you sure you want to delete this item?")) {
 			handleDeleteEntry(props.apiName, props.value, props.setSendingData, props.setSnackState, props.deleteCallback);
@@ -21,7 +23,7 @@ export const btnActionCellRenderer = (props) => {
 
 	return <Stack direction="row" spacing={1}>
 		<Tooltip title="Edit">
-			<IconButton aria-label="edit" onClick={editAction} disabled={!currentUserHasPermissions(props.requiredWritePermissions)}>
+			<IconButton aria-label="edit" onClick={editAction} disabled={!hasPermission(props.requiredWritePermissions)}>
 				<EditIcon />
 			</IconButton>
 		</Tooltip>
@@ -38,7 +40,7 @@ export const btnActionCellRenderer = (props) => {
 			} return !props.disabledDelete;
 		}) ()&&(
 		<Tooltip title="Delete">
-			<IconButton aria-label="delete" onClick={deleteAction} disabled={!currentUserHasPermissions(props.requiredWritePermissions)}>
+			<IconButton aria-label="delete" onClick={deleteAction} disabled={!hasPermission(props.requiredWritePermissions)}>
 				<DeleteIcon />
 			</IconButton>
 		</Tooltip>

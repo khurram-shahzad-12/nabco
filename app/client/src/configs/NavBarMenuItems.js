@@ -28,16 +28,16 @@ export const menuItems = [
 		name: "Setup",
 		icon: <SettingsIcon />,
 		requiredPermissions: [
-			process.env.REACT_APP_READ_ZONES_CLAIM,
-			process.env.REACT_APP_READ_VAT_CLAIM,
-			process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION,
+			process.env.REACT_APP_READ_ZONES_TAB,
+			process.env.REACT_APP_READ_VAT_TAB,
+			process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_TAB,
 			process.env.REACT_APP_WRITE_PAYMENT_TERM_CLAIM,
 			process.env.REACT_APP_WRITE_INVENTORY_SUPPLIERS_CLAIM
 		],
 		subItems: [
-			{ name: "Zone", label: 'Zone', icon: <PinDropIcon />, requiredPermissions: [process.env.REACT_APP_READ_ZONES_CLAIM] },
-			{ name: "VAT", label: 'VAT',  icon: <PercentIcon />, requiredPermissions: [process.env.REACT_APP_READ_VAT_CLAIM] },
-			{ name: "CustomerSalesRep", label: 'Sales Rep', icon: <ContactPageIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_PERMISSION] },
+			{ name: "Zone", label: 'Zone', icon: <PinDropIcon />, requiredPermissions: [process.env.REACT_APP_READ_ZONES_TAB] },
+			{ name: "VAT", label: 'VAT',  icon: <PercentIcon />, requiredPermissions: [process.env.REACT_APP_READ_VAT_TAB] },
+			{ name: "CustomerSalesRep", label: 'Sales Rep', icon: <ContactPageIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_CUSTOMER_SALES_REP_TAB] },
 			{ name: "Paymentterm", label: 'Payment Terms', icon: <PaymentsIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_PAYMENT_TERM_CLAIM] },
 			{ name: "ItemSuppliers", label: 'Suppliers List', icon: <LocalShippingIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_INVENTORY_SUPPLIERS_CLAIM] },
 		]
@@ -47,13 +47,13 @@ export const menuItems = [
 		icon: <CategoryIcon />,
 		requiredPermissions: [
 			process.env.REACT_APP_READ_INVENTORY_CLAIM,
-			process.env.REACT_APP_READ_INVENTORY_TAGS_CLAIM,
-			process.env.REACT_APP_READ_INVENTORY_CATEGORIES_CLAIM
+			process.env.REACT_APP_READ_INVENTORY_TAGS_TAB,
+			process.env.REACT_APP_READ_INVENTORY_CATEGORIES_TAB
 		],
 		subItems: [
 			{ name: "ItemList", label: 'Inventory List', icon: <MapIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVENTORY_CLAIM] },
-			{ name: "ItemTags", label: 'Inventory Tags', icon: <LocalOfferIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVENTORY_TAGS_CLAIM] },
-			{ name: "ItemCategories", label: 'Inventory Category', icon: <CategoryIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVENTORY_CATEGORIES_CLAIM] },
+			{ name: "ItemTags", label: 'Inventory Tags', icon: <LocalOfferIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVENTORY_TAGS_TAB] },
+			{ name: "ItemCategories", label: 'Inventory Category', icon: <CategoryIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVENTORY_CATEGORIES_TAB] },
 		]
 	},
 	{
@@ -62,31 +62,31 @@ export const menuItems = [
 		requiredPermissions: [
 			process.env.REACT_APP_READ_CUSTOMERS_CLAIM,
 			process.env.REACT_APP_READ_CUSTOMER_GROUPS,
-			process.env.REACT_APP_READ_CUSTOMER_TAGS_CLAIM,
+			process.env.REACT_APP_READ_CUSTOMER_TAGS_TAB,
 			process.env.REACT_APP_READ_CRM_MANAGEMENT,
 		],
 		subItems: [
 			{ name: "Customer", label: 'Customer Profile', icon: <ContactPhoneIcon />, requiredPermissions: [process.env.REACT_APP_READ_CUSTOMERS_CLAIM] },
 			{ name: "CustomerGroups", label: 'Customer Groups', icon: <GroupsIcon />, requiredPermissions: [process.env.REACT_APP_READ_CUSTOMER_GROUPS] },
 			{ name: "GroupPricing", label: 'Group Pricing', icon: <GroupsIcon />, requiredPermissions: [process.env.REACT_APP_READ_CUSTOMER_GROUPS] },
-			{ name: "CustomerTags", label: 'Customer Tags',icon: <LocalOfferIcon />, requiredPermissions: [process.env.REACT_APP_READ_CUSTOMER_TAGS_CLAIM] },
+			{ name: "CustomerTags", label: 'Customer Tags',icon: <LocalOfferIcon />, requiredPermissions: [process.env.REACT_APP_READ_CUSTOMER_TAGS_TAB] },
 			{ name: "CRMManagement", label: 'CRM',icon: <PersonAddAlt1Icon />, requiredPermissions: [process.env.REACT_APP_READ_CRM_MANAGEMENT] },
 		]
 	},
-	{
-		name: "Driver",
-		icon: <LocalShippingIcon />,
-		requiredPermissions: [
-			process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION,
-			process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM
-		],
-		subItems: [
-			{ name: "Name", label: 'Driver Name', icon: <ContactPhoneIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
-			{ name: "Vehicle", label: 'Vehicle', icon: <LocalShippingIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
-			{ name: "SetCustomerZoneV3", label: 'Zone V3', icon: <PinDropIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM] },
-			// { name: "OrderMap", label: 'Order Map', icon: <AltRouteIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
-		]
-	},
+	// {
+	// 	name: "Driver",
+	// 	icon: <LocalShippingIcon />,
+	// 	requiredPermissions: [
+	// 		process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION,
+	// 		process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM
+	// 	],
+	// 	subItems: [
+	// 		{ name: "Name", label: 'Driver Name', icon: <ContactPhoneIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
+	// 		{ name: "Vehicle", label: 'Vehicle', icon: <LocalShippingIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
+	// 		{ name: "SetCustomerZoneV3", label: 'Zone V3', icon: <PinDropIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_CUSTOMER_ZONES_CLAIM] },
+	// 		// { name: "OrderMap", label: 'Order Map', icon: <AltRouteIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_DRIVER_DETAILS_PERMISSION] },
+	// 	]
+	// },
 	{
 		name: "Invoice",
 		icon: <ReceiptIcon />,
@@ -134,8 +134,8 @@ export const menuItems = [
 		icon: <ManageAccountsIcon />,
 		requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION],
 		subItems: [
+			{ name: "ActiveUsers", label:'Active Users', icon: <PersonIcon />, requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION] },
 			{ name: "ManageUsers", label:'Manage Users', icon: <PersonIcon />, requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION] },
-			{ name: "ManageChatUsers", label:'Manage Chat Users', icon: <PersonIcon />, requiredPermissions: [process.env.REACT_APP_MANAGE_USERS_PERMISSION] },
 			// { name: "Manage Users", icon: <GroupAddIcon /> },
 			// { name: "Manage User Roles", icon: <SupervisedUserCircleIcon /> },
 			// { name: "Backup", icon: <BackupIcon /> }

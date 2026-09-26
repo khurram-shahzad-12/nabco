@@ -5,7 +5,7 @@ import CardContent from "@mui/material/CardContent";
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import {Button, Dialog, TextField} from '@mui/material';
-import {invoiceActionCellRenderer} from "../../components/cellRenderers/InvoicesActionCellRenderer";
+import {InvoiceActionCellRenderer} from "../../components/cellRenderers/InvoicesActionCellRenderer";
 import InvoiceForm from "../../components/InvoiceForm/InvoiceForm";
 import {
     defaultLoadedFieldData,
@@ -13,7 +13,6 @@ import {
     fetchDropdownField,
     getInvoiceReportsInNewTab,
     momentFormat,
-    currentUserHasPermissions,
     stringValueToNumberComparator,
     getTotalItemsWeightInGrams,
     formatWeightToString,
@@ -32,13 +31,15 @@ import moment from "moment";
 import {BalancePaidUnpaidCellRenderer} from "../../components/cellRenderers/BalancePaidUnpaidCellRenderer";
 import {WeightCellRenderer} from "../../components/cellRenderers/WeightCellRenderer";
 import Autocomplete from "@mui/material/Autocomplete";
+import { useAuth } from "../../contexts/AuthContext";
 
 const CollectionInvoices = props => {
+    const {hasPermission} = useAuth();
     const axios = axiosDefault();
-    const requiredEditPermissions = [process.env.REACT_APP_EDIT_INVOICES_CLAIM];
-    const requiredProfitPermissions = [process.env.REACT_APP_READ_INVOICE_MARGINS_CLAIM];
-    const requiredCustomerStatementPermissions = [process.env.REACT_APP_READ_CUSTOMER_STATEMENT_CLAIM];
-    const requiredInPersonInvoicePermissions = [process.env.REACT_APP_WRITE_IN_PERSON_INVOICES_CLAIM];
+    const requiredEditPermissions = process.env.REACT_APP_EDIT_INVOICES_CLAIM;
+    const requiredProfitPermissions = process.env.REACT_APP_READ_INVOICE_MARGINS_CLAIM;
+    const requiredCustomerStatementPermissions = process.env.REACT_APP_READ_CUSTOMER_STATEMENT_CLAIM;
+    const requiredInPersonInvoicePermissions = process.env.REACT_APP_WRITE_IN_PERSON_INVOICES_CLAIM;
     const [dialogState, setDialogState] = React.useState({open: false});
     const [sendingData, setSendingData] = useState(false);
     const [selectedInvoices, setSelectedInvoices] = useState([]);
@@ -250,7 +251,7 @@ const CollectionInvoices = props => {
         { headerName: "Invoice Date", field: "invoice_date", valueGetter: props => moment(props.data.invoice_date).format("DD/MM/YYYY"), comparator: dateStringComparator },
         { headerName: "Inv Weight", width: 125, resizable: false, field: "items", type: "rightAligned", valueGetter: WeightCellRenderer, comparator: stringValueToNumberComparator  },
         { headerName: "Inv Value", width: 120, resizable: false, field: "total_incl_vat", type: "rightAligned", valueGetter: PriceCellRenderer, comparator: stringValueToNumberComparator  },
-        ...currentUserHasPermissions(requiredProfitPermissions) && !reduced ? [{ headerName: "Profit", field: "profit", type: "rightAligned", valueGetter: PriceCellRenderer, comparator: stringValueToNumberComparator }]: [],
+        ...hasPermission(requiredProfitPermissions) && !reduced ? [{ headerName: "Profit", field: "profit", type: "rightAligned", valueGetter: PriceCellRenderer, comparator: stringValueToNumberComparator }]: [],
         // { headerName: "Balance(Paid/Total)", field: "total_incl_vat", type: "rightAligned", cellRenderer: BalanceCellRenderer },
         { headerName: "Paid/Unpaid", field: "total_incl_vat", valueGetter: BalancePaidUnpaidCellRenderer,
             width: 130,
@@ -275,7 +276,7 @@ const CollectionInvoices = props => {
         },
         { headerName: "Actions", field: "_id",
             filter: false,
-            cellRenderer: invoiceActionCellRenderer,
+            cellRenderer: InvoiceActionCellRenderer,
             cellRendererParams:
                 {
                     editCB: invoiceEditCB,
@@ -346,14 +347,14 @@ const CollectionInvoices = props => {
                 )}
                 getOptionLabel={option => option.customer_name}
             />
-            <Button variant="contained" disabled={selectedCustomer == null || !currentUserHasPermissions(requiredInPersonInvoicePermissions)} onClick={createInvoice}>Create Invoice</Button>
+            <Button variant="contained" disabled={selectedCustomer == null || !hasPermission(requiredInPersonInvoicePermissions)} onClick={createInvoice}>Create Invoice</Button>
             <div style={functionButtonsStyle}>
                 <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoice.pdf")}>View Invoice(s){getSelectedInvoicesCount()}</Button>
                 <Button variant="contained" className={styles.btnPickList} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("picklist.pdf")}>Picklist{getSelectedInvoicesCount()}</Button>
-                {(currentUserHasPermissions(requiredCustomerStatementPermissions) && selectedInvoices.length > 0 && sameCustomerInvoicesSelected()) &&
+                {(hasPermission(requiredCustomerStatementPermissions) && selectedInvoices.length > 0 && sameCustomerInvoicesSelected()) &&
                 <Button variant="contained" className={styles.btnCustomerStatement} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("customerstatement.pdf")}>Customer Statement{getSelectedInvoicesCount()}</Button>
                 }
-                {(currentUserHasPermissions(requiredProfitPermissions) && selectedInvoices.length > 0) && <Button variant="contained" disabled>Total Profit: {getSelectedInvoicesProfitTotal()}</Button>}
+                {(hasPermission(requiredProfitPermissions) && selectedInvoices.length > 0) && <Button variant="contained" disabled>Total Profit: {getSelectedInvoicesProfitTotal()}</Button>}
             </div>
             <div style={{height: "90%"}}>
                 <DataViewGrid rowData={invoicesList}
@@ -374,7 +375,7 @@ const CollectionInvoices = props => {
             </div>
             {selectedInvoices.length > 0 &&
             <>
-                {currentUserHasPermissions(requiredProfitPermissions) &&
+                {hasPermission(requiredProfitPermissions) &&
                 <div style={{float: "right", border: "1px solid"}}>
                     <span>Selected Invoices Total: £{getSelectedInvoicesTotalAmount().toFixed(2)}</span>
                 </div>

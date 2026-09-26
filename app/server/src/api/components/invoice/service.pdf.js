@@ -79,7 +79,7 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
         SERVICE_CUSTOMER.fetchCustomers({_id: {$in: [...neededData.customers]}},
             ['legal_entity', 'customer_name', 'mobile', 'phone', 'address', 'city', 'postcode', 'payment_term', 'print_outstanding_balances', 'zones', 'delivery_order'],
         ),
-        SERVICE_INVENTORY.fetchInventory({_id: {$in: [...neededData.items]}}, ['name', 'barcode', 'tax']),
+        SERVICE_INVENTORY.fetchInventory({_id: {$in: [...neededData.items]}}, ['name', 'barcode', 'tax',]),
         SERVICE_VAT.fetchVAT({_id: {$in: [...neededData.vats]}}, ['name', 'rate', 'order']),
         SERVICE_ZONE.fetchZones({}, ['name', 'order']),
         SERVICE_PAYMENT_TERM.fetchPaymentTerms()
@@ -202,25 +202,38 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
                     layout: 'headerLineOnly',
                     table: {
                         dontBreakRows: true,
-                        widths: ['15%', '45%', '10%', '10%', '10%', '10%'],
+                        widths: ['12%', '32%', '9%', '9%', '9%', '9%', '9%', '11%'],
                         headerRows: 1,
                         body: invoice.items.reduce((a, item) => {
+                            const inv = Inventory[item._id];
                             a.push([
                                 {text: Inventory[item._id]?.barcode ?? (item.barcode ? item.barcode : ''), noWrap: true},
                                 {text: Inventory[item._id]?.name ?? (item.name ? item.name : LABEL_MISSING_ITEM_NAME)},
-                                {text: item.rate.toFixed(2), alignment: 'right', noWrap: true},
-                                {text: item.quantity, alignment: 'right', noWrap: true},
-                                {text: VAT[item.vat.toString()]?.name ?? item.tax, alignment: 'right', noWrap: true},
-                                {text: item.price.toFixed(2), alignment: 'right', noWrap: true},
+                                { text: item.quantity, alignment: 'right', noWrap: true },
+                                { text: VAT[item.vat.toString()]?.name ?? item.tax, alignment: 'right', noWrap: true },
+                                {
+                                    text: (item.list_price != null ? +item.list_price : (inv?.list_price != null ? +inv.list_price : null)) != null
+                                        ? (+(item.list_price ?? inv.list_price)).toFixed(2)
+                                        : '', alignment: 'right', noWrap: true
+                                },
+                                {
+                                    text: (item.discount_percent != null ? +item.discount_percent : (inv?.discount_percent != null ? +inv.discount_percent : null)) != null
+                                        ? (+(item.discount_percent ?? inv.discount_percent)).toFixed(2) + '%'
+                                        : '', alignment: 'right', noWrap: true
+                                },
+                                { text: item.rate.toFixed(2), alignment: 'right', noWrap: true },
+                                { text: item.price.toFixed(2), alignment: 'right', noWrap: true },
                             ]);
                             return a;
                         }, [
                             [
                                 {text: 'Item#', style: 'tableHeader'},
                                 {text: 'Item Name', style: 'tableHeader'},
-                                {text: 'Unit Price', style: 'tableHeader', alignment: 'right'},
                                 {text: 'Quantity', style: 'tableHeader', alignment: 'right'},
                                 {text: 'VAT Code', style: 'tableHeader', alignment: 'right'},
+                                {text: 'List Price', style: 'tableHeader', alignment: 'right'},
+                                {text: 'Disc %', style: 'tableHeader', alignment: 'right'},
+                                {text: 'Nett Price', style: 'tableHeader', alignment: 'right'},
                                 {text: 'Total', style: 'tableHeader', alignment: 'right'},
                             ],
                         ]),

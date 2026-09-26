@@ -1,5 +1,16 @@
-.Header tr th {
-    /*border: solid;*/
+.Header tr th,
+.ItemChooserColumn tr td {
+    box-sizing: border-box;
+}
+
+.Header,
+.ItemChooserColumn {
+    width: 100%;
+}
+
+div > table {
+    width: 100%;
+    table-layout: fixed;
 }
 
 .ItemChooserColumn tr td {
@@ -7,36 +18,19 @@
     border-right: solid 1px;
 }
 
-.Barcode {
-    width: 10%;
-}
-.Name {
-    width: 35%;
-}
-.Quantity {
-    width: 5%;
-}
-.Rate {
-    width: 10%;
-}
-.VATCode {
-    width: 10%;
-}
-.VATRate {
-    width: 10%;
-}
-.VATAmount {
-    width: 10%;
-}
-.Value {
-    width: 10%;
-}
-.Action {
-    width: 10%;
-}
+.Barcode { width: 6%; }
+.Name { width: 34%; }
+.Quantity { width: 5%; }
+.VATRate { width: 7%; }
+.VATAmount { width: 7%; }
+.ListPrice { width: 7%; }
+.Discount { width: 6%; }
+.Rate { width: 7%; }
+.Value { width: 8%; }
+.Action { width: 5%; }
 
 .cellRightAlign {
-    text-align: end;
+    text-align: right;
 }
 
 .cellCenterAlign {

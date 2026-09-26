@@ -14,9 +14,9 @@ import {
     handleDataEditSubmit,
     handleDataSubmit,
     handleInputChange, handleNumberInputChange,
-    currentUserHasPermissions, stringValueToNumberComparator, getItemReportsInNewTab, fetchEntries
+    stringValueToNumberComparator, getItemReportsInNewTab, fetchEntries
 } from "../../components/formFunctions/FormFunctions";
-
+import { useAuth } from '../../contexts/AuthContext';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import EditIcon from "@mui/icons-material/Edit";
@@ -42,6 +42,7 @@ import CustomConfirmModal from "../../components/CustomConfirmModal/CustomConfir
 const API_NAME = '/inventory';
 
 export const Inventory = () => {
+    const {hasPermission} = useAuth();
     const [sendingData, setSendingData] = useState(false);
     const [inventoryAlertModalOpen, setInventoryAlertModalOpen] = useState(false);
     const [customerPricesBelowCostModalOpen, setCustomerPricesBelowCostModalOpen] = useState(false);
@@ -60,12 +61,12 @@ export const Inventory = () => {
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_INVENTORY_CLAIM];
-    const requiredDeletePermissions = [process.env.REACT_APP_DELETE_INVENTORY_ITEMS];
-    const requiredInventoryAlertPermissions = [process.env.REACT_APP_WRITE_INVENTORY_ALERT_QUANTITY];
-    const requiredResetNegativesPermissions = [process.env.REACT_APP_RESET_NEGATIVE_INVENTORY_ITEMS];
-    const requiredShowStockValuePermissions = [process.env.REACT_APP_SHOW_VALUE_INVENTORY_ITEMS];
-    const requiredCSVPermission = [process.env.REACT_APP_CUSTOMER_ACCOUNTS_CSV_PERMISSION];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_INVENTORY_CLAIM;
+    const requiredDeletePermissions = process.env.REACT_APP_DELETE_INVENTORY_ITEMS;
+    const requiredInventoryAlertPermissions = process.env.REACT_APP_WRITE_INVENTORY_ALERT_QUANTITY;
+    const requiredResetNegativesPermissions = process.env.REACT_APP_RESET_NEGATIVE_INVENTORY_ITEMS;
+    const requiredShowStockValuePermissions = process.env.REACT_APP_SHOW_VALUE_INVENTORY_ITEMS;
+    const requiredCSVPermission = process.env.REACT_APP_CUSTOMER_ACCOUNTS_CSV_PERMISSION;
 
     const disableEditMode = () => {
         setFormValues(defaultFormState);
@@ -297,6 +298,18 @@ export const Inventory = () => {
 
     const itemData = [
         {
+            field: "article",
+            label: "Article",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                required: true,
+                type: "text",
+                autoFocus: true,
+            },
+                gridProps: { width: 110 }
+        },
+        {
             field: "name",
             label: "Item Name",
             type: "textfield",
@@ -345,7 +358,7 @@ export const Inventory = () => {
                 width: 110,
             }
         },
-        ... currentUserHasPermissions([process.env.REACT_APP_WRITE_INVENTORY_ALERT_QUANTITY]) ? [{
+        ... hasPermission(process.env.REACT_APP_WRITE_INVENTORY_ALERT_QUANTITY) ? [{
             field: "alert_quantity",
             label: "Low Stock Alert Quantity",
             type: "textfield",
@@ -362,27 +375,6 @@ export const Inventory = () => {
             }
         }] : [],
         {
-            field: "vat",
-            label: "Vat",
-            type: "dropdown",
-            dropdownOptions: vatData,
-            defaultState: [],
-            changeListener: inputChangeListener,
-            textFieldProps: {
-                required: true,
-                type: "text"
-            },
-            gridProps: {
-                width: 120,
-                valueGetter: props => LinkedFieldCellValueGetterRenderer({
-                    ...props,
-                    idMapping: vatData.map,
-                    mappedFieldName: "name",
-                    mappingDataLoaded: vatData.loaded
-                })
-            }
-        },
-        {
             field: "active",
             label: "Active",
             type: "checkbox",
@@ -392,7 +384,7 @@ export const Inventory = () => {
                 cellRenderer: BooleanFieldCellRenderer
             }
         },
-            ... currentUserHasPermissions([process.env.REACT_APP_WRITE_INVENTORY_CLAIM]) ? [{
+            ... hasPermission(process.env.REACT_APP_WRITE_INVENTORY_CLAIM) ? [{
             field: "cost_price",
             label: "Cost Price",
             type: "textfield",
@@ -431,8 +423,51 @@ export const Inventory = () => {
             }
         },
         {
+            field: "list_price",
+            label: "List Price",
+            type: "textfield",
+            changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
+            textFieldProps: {
+                required: true,
+                type: "number",
+                inputProps: {
+                    step: 0.01
+                }
+            },
+            gridProps: {
+                width: 150,
+                type: "rightAligned",
+                valueGetter: PriceCellRenderer,
+                comparator: stringValueToNumberComparator
+            }
+        },
+        {
+            field: "discount_percent",
+            label: "Discount %",
+            type: "textfield",
+            changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
+            textFieldProps: {
+                required: true,
+                type: "number",
+                inputProps: { step: 0.01, min: 0, max: 100 }
+            },
+            gridProps: {
+                width: 150,
+                type: "rightAligned",
+                valueFormatter: params => {
+                    const v = params.value;
+                    if (v === null || v === undefined || v === "") return "";
+                    const n = Number(v);
+                    if (Number.isNaN(n)) return "";
+                    // show 50 not 50.00 when whole, 12.5 not 12.50
+                    return `${Number.isInteger(n) ? n : n.toFixed(2)}%`;
+                },
+                comparator: stringValueToNumberComparator
+            }
+        },
+        {
             field: "default_sale_price",
-            label: "Default Sale Price",
+            label: "Nett Price",
             type: "textfield",
             changeListener: event => handleNumberInputChange(event, formValues, setFormValues),
             textFieldProps: {
@@ -527,7 +562,7 @@ export const Inventory = () => {
                 }
             }
         },
-        ... currentUserHasPermissions([process.env.REACT_APP_WRITE_INVENTORY_CLAIM]) ? [{
+        ... hasPermission(process.env.REACT_APP_WRITE_INVENTORY_CLAIM) ? [{
             field: "supplier1",
             label: "Supplier 1",
             type: "dropdown",
@@ -547,7 +582,7 @@ export const Inventory = () => {
                 })
             }
         }] : [],
-        ... currentUserHasPermissions([process.env.REACT_APP_WRITE_INVENTORY_CLAIM]) ? [{
+        ... hasPermission(process.env.REACT_APP_WRITE_INVENTORY_CLAIM) ? [{
             field: "supplier2",
             label: "Supplier 2",
             type: "dropdown",
@@ -567,7 +602,7 @@ export const Inventory = () => {
                 })
             }
         }] : [],
-        ... currentUserHasPermissions([process.env.REACT_APP_WRITE_INVENTORY_CLAIM]) ? [{
+        ... hasPermission(process.env.REACT_APP_WRITE_INVENTORY_CLAIM) ? [{
             field: "supplier3",
             label: "Supplier 3",
             type: "dropdown",
@@ -588,22 +623,6 @@ export const Inventory = () => {
             }
         }] : [],
         {
-            field: "aisle",
-            label: "Aisle",
-            type: "textfield",
-            changeListener: inputChangeListener,
-            textFieldProps: {
-                type: "text",
-            }
-        }, {
-            field: "location",
-            label: "Location",
-            type: "textfield",
-            changeListener: inputChangeListener,
-            textFieldProps: {
-                type: "text",
-            }
-        }, {
             field: "color",
             label: "Color",
             type: "textfield",
@@ -628,8 +647,8 @@ export const Inventory = () => {
             }
         },
         {
-            field: "size",
-            label: "Size",
+            field: "product_size",
+            label: "Product Size",
             type: "textfield",
             changeListener: inputChangeListener,
             textFieldProps: {
@@ -639,13 +658,58 @@ export const Inventory = () => {
                 width: 150,
             }
         },
+        {
+            field: "barcode",
+            label: "Barcode",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            }
+        },{
+            field: "aisle",
+            label: "Aisle",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            }
+        }, {
+            field: "location",
+            label: "Location",
+            type: "textfield",
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                type: "text",
+            }
+        }, {
+            field: "vat",
+            label: "Vat",
+            type: "dropdown",
+            dropdownOptions: vatData,
+            defaultState: [],
+            changeListener: inputChangeListener,
+            textFieldProps: {
+                required: true,
+                type: "text"
+            },
+            gridProps: {
+                width: 120,
+                valueGetter: props => LinkedFieldCellValueGetterRenderer({
+                    ...props,
+                    idMapping: vatData.map,
+                    mappedFieldName: "name",
+                    mappingDataLoaded: vatData.loaded
+                })
+            }
+        },
     ];
 
     const checkboxColumnDef = { headerName: "", checkboxSelection: true, headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly:true, filter: false, minWidth: 60, maxWidth: 60 }
 
     useEffect(() => {
         fetchAllItems();
-        currentUserHasPermissions(requiredShowStockValuePermissions) && setInventoryAlertModalOpen(true);
+        hasPermission(requiredShowStockValuePermissions) && setInventoryAlertModalOpen(true);
     }, []);
 
     useEffect(() => {
@@ -657,12 +721,14 @@ export const Inventory = () => {
             setDialogOpen(false);
         }
     }, [editMode]);
-    const hiddenGridFields = ["default_sale_price", "weight_grams", "weight_kg","min_sale_price", "collection_price", "active", "vat", "alert_quantity", "tags"];
+    const hiddenGridFields = ["weight_grams", "weight_kg","min_sale_price", "active", "alert_quantity", "tags", "supplier1", "supplier2", "supplier3", "cost_price", "category",];
+    const hiddenFormFields = ["weight_grams", "weight_kg","min_sale_price", "active", "alert_quantity", "tags", "supplier1", "supplier2", "supplier3", "cost_price", "category", 'barcode', 'article'];
 
-    const defaultFormState = getDefaultFormFields(itemData);
+    const gridItemData = itemData.filter(item => !hiddenGridFields.includes(item.field));
+    const formItemData = itemData.filter(item => !hiddenFormFields.includes(item.field));
+    const defaultFormState = getDefaultFormFields(formItemData);
     const [formValues, setFormValues] = useState({...defaultFormState});
-    const gridItemData = itemData.filter(item => !hiddenGridFields.includes(item.field))
-    const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, !currentUserHasPermissions(requiredDeletePermissions), requiredWritePermissions, showImageFunction), checkboxColumnDef, ...getColumnDefs(gridItemData)];
+    const colDefs = [getActionColumnDef(setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, fetchAllItems, !hasPermission(requiredDeletePermissions), requiredWritePermissions, showImageFunction), checkboxColumnDef, ...getColumnDefs(gridItemData)];
 
     // if(!currentUserHasPermissions(process.env.REACT_APP_DELETE_INVENTORY_ITEMS)) {
     //     return "YOU DO NOT HAVE PERMISSION TO ACCESS THIS PAGE";
@@ -680,7 +746,7 @@ export const Inventory = () => {
                 <Card className={cardStyles.popupFormCard}>
                     <CardContent>
                         <form onSubmit={editMode ? handleEditSubmit : handleSubmit}>
-                            {getGridFormInputFields(getInputFields(itemData, formValues))}
+                            {getGridFormInputFields(getInputFields(formItemData, formValues))}
                             {editMode ? (
                                     <div>
                                         <img
@@ -711,19 +777,19 @@ export const Inventory = () => {
                 </Card>
             </div>
         </Dialog>
-        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!currentUserHasPermissions(requiredWritePermissions)}>Add Item</Button>
+        <Button variant="contained" onClick={handleOpenDialog} style={{marginRight: "1em"}} disabled={!hasPermission(requiredWritePermissions)}>Add Item</Button>
         <Button variant="contained" onClick={fetchAllItems} style={{marginRight: "1em"}}>Reload</Button>
         <Button variant="contained" onClick={() => openItemsListPDF("items.pdf")} disabled={selectedItems.length === 0} style={{marginRight: "1em"}}>Print Selected Items({selectedItems.length})</Button>
         <Button variant="contained" onClick={() => openItemsInStockPDF("itemsInStock.pdf")} style={{marginRight: "1em"}}>Print In Stock Items</Button>
-        {currentUserHasPermissions(requiredInventoryAlertPermissions)  && <Button variant="contained" onClick={() => setInventoryAlertModalOpen(true)} style={{marginRight: "1em"}}>Show
+        {hasPermission(requiredInventoryAlertPermissions)  && <Button variant="contained" onClick={() => setInventoryAlertModalOpen(true)} style={{marginRight: "1em"}}>Show
             stock alerts</Button>}
-        {currentUserHasPermissions(requiredShowStockValuePermissions) && <Button variant="contained" onClick={showStockValue}
-                 disabled={!currentUserHasPermissions(requiredShowStockValuePermissions)} style={{marginRight: "1em"}}>Show
+        {hasPermission(requiredShowStockValuePermissions) && <Button variant="contained" onClick={showStockValue}
+                 disabled={!hasPermission(requiredShowStockValuePermissions)} style={{marginRight: "1em"}}>Show
             Stock Value</Button>}
-        {currentUserHasPermissions(requiredCSVPermission) && <Button variant="contained" onClick={csvAction} disabled={sendingData} style={{marginRight: "1em"}}>CSV</Button>}
-        {currentUserHasPermissions(requiredInventoryAlertPermissions)  && <Button variant="contained" onClick={showCustomersWithPriceBelowCost} style={{marginRight: "1em"}}>Price below cost</Button>}
-        {currentUserHasPermissions(requiredResetNegativesPermissions) && <Button variant="contained" onClick={resetNegativeInventory}
-                 disabled={!currentUserHasPermissions(requiredResetNegativesPermissions)} style={{marginRight: "1em"}}>Reset
+        {hasPermission(requiredCSVPermission) && <Button variant="contained" onClick={csvAction} disabled={sendingData} style={{marginRight: "1em"}}>CSV</Button>}
+        {hasPermission(requiredInventoryAlertPermissions)  && <Button variant="contained" onClick={showCustomersWithPriceBelowCost} style={{marginRight: "1em"}}>Price below cost</Button>}
+        {hasPermission(requiredResetNegativesPermissions) && <Button variant="contained" onClick={resetNegativeInventory}
+                 disabled={!hasPermission(requiredResetNegativesPermissions)} style={{marginRight: "1em"}}>Reset
             Negatives to 0</Button>}
         <DataViewGrid
             getGridApi={setGridApi}

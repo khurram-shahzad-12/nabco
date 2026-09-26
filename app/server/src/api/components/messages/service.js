@@ -1,5 +1,4 @@
 const Message = require('./model');
-const ChatUser = require("../chat_users/model");
 
 exports.createMessage = async ({senderId, receiverId, text, replyTo}) => {
     try {

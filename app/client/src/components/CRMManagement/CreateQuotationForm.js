@@ -49,6 +49,8 @@ const CreateQuotationForm = ({ productsMap, vatData, onClose, initialCustomer = 
                     name: item.name,
                     vat: item.vat,
                     default_sale_price: item.default_sale_price,
+                    list_price: item.list_price ?? null,
+                    discount_percent: item.discount_percent ?? null,
                     key: uuidv4(),
                 }));
                 setItems(initialItems);
@@ -154,7 +156,7 @@ const CreateQuotationForm = ({ productsMap, vatData, onClose, initialCustomer = 
                 customer_name: customer_name,
                 phone: phone,
             },
-            items: filteredItems.map(({ _id, quantity, rate, tax, name, vat, default_sale_price }) => ({ productId: _id, quantity, rate, tax, name, vat, default_sale_price })),
+            items: filteredItems.map(({ _id, quantity, rate, tax, name, vat, default_sale_price, list_price, discount_percent }) => ({ productId: _id, quantity, rate, tax, name, vat, default_sale_price, list_price, discount_percent })),
             total_no_vat: totals.total_no_vat,
             vat_total: totals.vat_total,
             total_incl_vat: totals.total_incl_vat,

@@ -26,7 +26,7 @@ const getQuotationsByIds = async (ids) => {
     return await QuotationModel.find({_id: {$in: objectIds}}).sort({createdAt: -1});
 }
 
-const convertQuotationToInvoice = async (quotationId, customerId, createdBy, userPermissions) => {
+const convertQuotationToInvoice = async (quotationId, customerId, createdBy) => {
     try {
         if (!quotationId) {throw new Error('Quotation ID is required'); }
         if (!customerId) { throw new Error('Customer ID is required'); }
@@ -65,6 +65,8 @@ const convertQuotationToInvoice = async (quotationId, customerId, createdBy, use
                 tax: Number(item.tax) || 0,
                 weight_grams: proData.weight_grams || 0,
                 weight_kg: proData.weight_kg || 1,
+                list_price: item.list_price != null ? +item.list_price : (proData.list_price != null ? +proData.list_price : 0),
+                discount_percent: item.discount_percent != null ? +item.discount_percent : (proData.discount_percent != null ? +proData.discount_percent : 0),
                 
             };
         }));
@@ -100,8 +102,6 @@ const convertQuotationToInvoice = async (quotationId, customerId, createdBy, use
         if (!newInvoice) { throw new Error('Failed to create invoice'); }
         quotation.convertedToInvoice = true;
         quotation.invoiceNumber = newInvoice.sale_number;
-        // quotation.convertedAt = new Date();
-        // quotation.convertedBy = createdBy || 'system';
         await quotation.save();
         return {
             success: true,
@@ -121,11 +121,9 @@ const convertQuotationToInvoice = async (quotationId, customerId, createdBy, use
                 _id: quotation._id,
                 quotationNo: quotation.quotationNo,
                 convertedToInvoice: quotation.convertedToInvoice,
-                // invoiceId: quotation.invoiceId,
                 invoiceNumber: quotation.invoiceNumber
             }
         };
-
     } catch (error) {
         console.error('Conversion error:', error);
         throw new Error(`Failed to convert quotation to invoice: ${error.message}`);

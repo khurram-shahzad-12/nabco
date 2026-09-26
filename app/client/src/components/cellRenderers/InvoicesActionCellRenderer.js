@@ -11,13 +11,14 @@ import PrintIcon from '@mui/icons-material/Print';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Tooltip from '@mui/material/Tooltip';
 import Stack from '@mui/material/Stack';
-import {currentUserHasPermissions} from "../formFunctions/FormFunctions";
+import { useAuth } from '../../contexts/AuthContext';
 import moment from "moment";
 
-export const invoiceActionCellRenderer = (props) => {
+export const InvoiceActionCellRenderer = (props) => {
+	const {hasPermission} = useAuth();
 	const INVOICE_EDIT_LIMIT = process.env.REACT_APP_INVOICES_EDIT_DURATION_LIMIT;
 	const INVOICE_EDIT_LIMIT_SALES = process.env.REACT_APP_INVOICES_EDIT_DURATION_LIMIT_SALES_STAFF_HOURS;
-	const WRITE_PAYMENT_PERMISSIONS = [process.env.REACT_APP_WRITE_INVOICE_PAYMENTS_DATA_CLAIM];
+	const WRITE_PAYMENT_PERMISSIONS = process.env.REACT_APP_WRITE_INVOICE_PAYMENTS_DATA_CLAIM;
 	const todaysDate = moment(moment().format('YYYY-MM-DD'));
 	const invoice_date = moment(moment(props.data.invoice_date).format('YYYY-MM-DD'));
 	const ot_date = moment(moment(props.data.ot_date).format('YYYY-MM-DD'));
@@ -25,7 +26,7 @@ export const invoiceActionCellRenderer = (props) => {
 	const hoursSinceInvoiceOTDate = todaysDate.diff(ot_date, 'hours');
 
 	const editAction = () => {
-		props.editCB(props.data, currentUserHasPermissions(WRITE_PAYMENT_PERMISSIONS) ?
+		props.editCB(props.data, hasPermission(WRITE_PAYMENT_PERMISSIONS) ?
 			daysSinceInvoiceDate < INVOICE_EDIT_LIMIT
 		:
 			hoursSinceInvoiceOTDate < INVOICE_EDIT_LIMIT_SALES
@@ -60,12 +61,12 @@ export const invoiceActionCellRenderer = (props) => {
 	};
 
 	return <Stack direction="row" spacing={1}>
-		<Tooltip title={currentUserHasPermissions(WRITE_PAYMENT_PERMISSIONS) ? daysSinceInvoiceDate < INVOICE_EDIT_LIMIT ? "Edit" : "View"
+		<Tooltip title={hasPermission(WRITE_PAYMENT_PERMISSIONS) ? daysSinceInvoiceDate < INVOICE_EDIT_LIMIT ? "Edit" : "View"
 			:
 			hoursSinceInvoiceOTDate < INVOICE_EDIT_LIMIT_SALES ? "Edit" : "View"
 		}>
-			<IconButton aria-label="edit" onClick={editAction} disabled={!currentUserHasPermissions(props.requiredEditPermissions)}>
-				{currentUserHasPermissions(WRITE_PAYMENT_PERMISSIONS) ? daysSinceInvoiceDate < INVOICE_EDIT_LIMIT ? <EditIcon/> : <VisibilityIcon/>
+			<IconButton aria-label="edit" onClick={editAction} disabled={!hasPermission(props.requiredEditPermissions)}>
+				{hasPermission(WRITE_PAYMENT_PERMISSIONS) ? daysSinceInvoiceDate < INVOICE_EDIT_LIMIT ? <EditIcon/> : <VisibilityIcon/>
 				: hoursSinceInvoiceOTDate < INVOICE_EDIT_LIMIT_SALES ? <EditIcon/> : <VisibilityIcon/>
 				}
 			</IconButton>
@@ -93,9 +94,8 @@ export const invoiceActionCellRenderer = (props) => {
 				</IconButton>
 			</Tooltip>
 		}
-
 		{
-			(currentUserHasPermissions(WRITE_PAYMENT_PERMISSIONS) && !props.reduced) &&
+			(hasPermission(WRITE_PAYMENT_PERMISSIONS) && !props.reduced) &&
 			<Tooltip title="Record Payment(s)">
 				<IconButton aria-label="record payments" onClick={paymentsAction}>
 					<PaymentsIcon />

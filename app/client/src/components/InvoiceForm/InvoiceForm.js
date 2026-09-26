@@ -24,7 +24,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import moment from "moment";
 import ItemHistoryDisplay from "./ItemHistoryDisplay";
 import UnpaidInvoicesDisplay from "./UnpaidInvoicesDisplay";
-import {useAuth0} from "@auth0/auth0-react";
+import { useAuth } from "../../contexts/AuthContext";
 import AuditModal from "../AuditModal/AuditModal";
 
 const getDefaultInvoiceDate = (currentDate, selectedCustomer, isInPersonInvoice) => {
@@ -70,7 +70,7 @@ const attachUUIDToItems = items => {
 };
 
 const InvoiceForm = props => {
-    const {user} = useAuth0();
+    const {user} = useAuth();
     const [auditModalOpen, setAuditModalOpen] = useState(false);
     const isEditMode = props.dialogDetails.mode === "EDIT";
     const isInPersonMode = props.collection_invoice;
@@ -109,7 +109,7 @@ const InvoiceForm = props => {
         :
         {
             ...defaultInvoiceFields,
-            created_by: user.name,
+            created_by: user.user_name,
             customer: selectedCustomer._id,
             customer_sales_rep: selectedCustomer?.sales_rep,
             invoice_date: getDefaultInvoiceDate(defaultInvoiceFields.ot_date, selectedCustomer, isInPersonMode)
@@ -246,6 +246,7 @@ const InvoiceForm = props => {
         const onSuccess = response => {
             if(response.data && setInitialItemsList && response.data.items.length > 0) {
                 let newItemsList = [];
+                console.log(response.data)
                 response.data.items.forEach(customerItem => {
                     const fullItemDetails = productsList.map[customerItem._id]
                     newItemsList.push({

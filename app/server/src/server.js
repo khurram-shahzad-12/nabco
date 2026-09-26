@@ -2,24 +2,22 @@ const env = require('./config.env');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-const express = require('express');
-const axios = require('axios');
-const jwtDecode = require('jwt-decode');
+const express = require('express');;
 const { Server } = require("socket.io");
 
 const cors = require('cors');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const mongoSanitize = require('express-mongo-sanitize');
-
+const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const morgan = require('morgan');
 const createError = require('http-errors');
 
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./db/connect');
-// const auth0 = require('./middleware/auth0');
-const {jwtAuth} = require('./middleware/auth0');
+const {authenticate} = require("./middleware/auth");
+const {verifyToken} = require("./api/components/authentication/user/service");
 const routesAPI = require('./routes');
 
 const cron = require('node-cron');
@@ -37,6 +35,12 @@ const userSockets = new Map();
 
 const app = express();
 let io;
+const corsOptions = {
+  origin: ['http://localhost:3000', 'https://localhost:8000', 'http://localhost', 'https://nabco.sdw-ds.com'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 const startupCallback = () => {
     process.stdout.write(`${Date().toString()}\n`);
     process.stdout.write(`Environment: ${env.NODE_ENV}\n`);
@@ -44,7 +48,6 @@ const startupCallback = () => {
     process.stdout.write(`TLS: ${env.useTLS}\n`);
     process.stdout.write(`Helmet: ${env.useHELMET}\n`);
     process.stdout.write(`CORS: ${env.useCORS}\n`);
-    process.stdout.write(`Auth0: ${env.useAUTH0}\n`);
     process.stdout.write(`Emails Enabled: ${env.EMAIL_ENABLED}\n`);
     process.stdout.write(`Allowed content-src: ${env.CONTENT_SRC_ALLOWED}\n`);
     connectDB();
@@ -92,35 +95,26 @@ const startupCallback = () => {
     spiceDirectAppOrders.cancelOrdersFromSpiceDirectApp.start();
 };
 
-const getUserNameFromAuth0AndStoreInMap = userToken => {
-    const decodedToken = jwtDecode(userToken);
-    const userInfoURL = `${env.TOKEN_ISSUER}userinfo`;
-    const headers = {
-        Authorization: `Bearer ${userToken}`
-    }
-    axios.get(userInfoURL, {headers: headers})
-        .then(res => {
-            userMap[decodedToken.sub] = res.data['nickname']; 
-        })
-        .catch(err => {
-            console.error(`Failed to get username for ID: ${decodedToken.sub}`)
-            console.log(err.message);
-        });
-};
-
-const getUserFromJWT = req => {
+const getUserFromJWT = (req) => {
     let returnName = 'UNKNOWN USER';
-    if(req.auth) {
-        const userToken = req.auth.token;
-        const decodedToken = jwtDecode(userToken);
-
-        if(userMap[decodedToken.sub]) {
-            returnName = userMap[decodedToken.sub]
-        } else {
-            returnName = decodedToken.sub;
-            getUserNameFromAuth0AndStoreInMap(req.auth.token);
+    try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split(' ')[1];
+            const decoded = verifyToken(token);
+            if (decoded) {
+                if (decoded.firstName && decoded.lastName) {
+                    const fullName = [decoded.firstName, decoded.lastName].filter(Boolean).join(' ');
+                    returnName = fullName;
+                } else if (decoded.email) {
+                    returnName = decoded.email;
+                }
+            }
         }
+    } catch (error) {
+        console.error('Error getting user from JWT:', error);
     }
+    
     return returnName;
 };
 
@@ -128,7 +122,7 @@ if (env.useHELMET) {
     app.use(
         helmet.contentSecurityPolicy({
             directives: {
-                'default-src': ['\'self\'', ...env.CSP_DEFAULT_SRC],
+                'default-src': ['\'self\''],
                 'img-src': ['\'self\'', 'data:','https://maps.gstatic.com','https://maps.googleapis.com','https://s.gravatar.com','https://cdn.jsdelivr.net' ,...env.CSP_IMG_SRC],
                 'script-src': ['\'self\'',
                     'https://maps.googleapis.com', 'https://maps.gstatic.com', "'unsafe-inline'"
@@ -142,13 +136,15 @@ if (env.useHELMET) {
         }),
     );
 }
-if (env.useCORS) app.use(cors());
+if (env.useCORS) {app.use(cors(corsOptions)); app.options('*', cors(corsOptions))};
 app.use(xss());
 app.use(mongoSanitize());
 
 app.use(express.static('public'));
 app.use(express.static('build'));
 app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+app.use(cookieParser());
 
 app.use(compression());
 //logging config
@@ -175,11 +171,8 @@ app.get('/api/inventory/image/:id', async (req, res, next) => {
         next(e);
     }
 });
-
-if (env.useAUTH0) app.use('/api', jwtAuth, routesAPI);
-else app.use('/api', routesAPI);
-
-app.get('/api/admin/activeUsers', manageUsersPermission, (req, res) => {
+app.use('/api', routesAPI);
+app.get('/api/admin/activeUsers',authenticate, manageUsersPermission, (req, res) => {
     const activeUsers = Array.from(userSockets.keys()).map(key => {
         return {
             name: userMap[key] ? userMap[key] : key,
@@ -189,7 +182,7 @@ app.get('/api/admin/activeUsers', manageUsersPermission, (req, res) => {
     res.send(activeUsers);
 });
 
-app.post('/api/admin/logOutUser', manageUsersPermission, (req, res) => {
+app.post('/api/admin/logOutUser',authenticate, manageUsersPermission, (req, res) => {
     const targetUser = req.body;
     const targetSockets = userSockets.get(targetUser.id);
     if(targetSockets && targetSockets.size > 0) {
@@ -208,7 +201,7 @@ app.use((_req, _res, next) => next(createError(404)));
 app.use(errorHandler);
 
 const socketOnConnection = (socket) => {
-    const chatHandler = new ChatHandler(io, userSockets, userMap, env, getUserNameFromAuth0AndStoreInMap)
+    const chatHandler = new ChatHandler(io, userSockets, userMap, env)
     socket.on('REGISTER', async (args) => {
         try {
             await chatHandler.handleRegister(args[0], args[1], socket);
@@ -253,7 +246,7 @@ const socketOnConnection = (socket) => {
 const socketOptions = {
     pingTimeout: 120000, pingInterval: 30000, connectTimeout: 45000, transport: ['websocket', 'polling'],
 }
-console.log(process.env.NODE_ENV)
+
 if (env.useTLS) {
     const credentials = {
         key: fs.readFileSync(env.TLS_KEY, 'utf8'),

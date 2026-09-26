@@ -4,12 +4,11 @@ import displaySnackState from "../../components/customisedSnackBar/DisplaySnackS
 import CustomisedSnackBar from "../../components/customisedSnackBar/CustomisedSnackBar";
 import {
     defaultLoadedFieldData, defaultSnackState,
-    fetchAllEntriesAndSetRowData, fetchDropdownField, getIDMappingForElement, momentFormat,
-    currentUserHasPermissions, fetchEntries
+    fetchAllEntriesAndSetRowData, fetchDropdownField, getIDMappingForElement, momentFormat, fetchEntries
 } from "../../components/formFunctions/FormFunctions";
 
 import {Button, Dialog, TextField, Stack} from "@mui/material";
-
+import { useAuth } from '../../contexts/AuthContext';
 import DataViewGrid from "../../components/DataViewGrid/DataViewGrid";
 import axiosDefault from "../../components/axiosDefault/axiosDefault";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
@@ -26,7 +25,6 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Tooltip from "@mui/material/Tooltip";
 import CustomerTemporaryOTPicker from "../../components/CustomerTemporaryOTPicker/CustomerTemporaryOTPicker";
-import {useAuth0} from "@auth0/auth0-react";
 import LinkedFieldCellValueGetterRenderer from "../../components/cellRenderers/LinkedFieldCellValueGetterRenderer";
 
 const API_NAME = '/customer';
@@ -38,7 +36,8 @@ const gridProps = {
 };
 
 export const OrderTakingSheet = () => {
-    const {user} = useAuth0();
+    const {hasPermission} = useAuth();
+    const {user} = useAuth();
     const axios = axiosDefault();
     const [dialogState, setDialogState] = React.useState({open: false});
     const [callbackDialogState, setCallbackDialogState] = React.useState({open: false});
@@ -56,8 +55,8 @@ export const OrderTakingSheet = () => {
     const [temporaryOrderingCustomers, setTemporaryOrderingCustomers] = useState({});
     const [customersToCallback, setCustomersToCallback] = useState([]);
     const [callbackInterval, setCallbackInterval] = useState(null);
-    const requiredWritePermissions = [process.env.REACT_APP_WRITE_INVOICES_CLAIM];
-    const requiredCancelOrderingPermissions = [process.env.REACT_APP_WRITE_CUSTOMER_CANCEL_ORDER_DAY_CLAIM];
+    const requiredWritePermissions = process.env.REACT_APP_WRITE_INVOICES_CLAIM;
+    const requiredCancelOrderingPermissions = process.env.REACT_APP_WRITE_CUSTOMER_CANCEL_ORDER_DAY_CLAIM;
 
     const handleCloseDialog = () => setDialogState({open: false});
     const handleCloseCallbackDialog = () => setCallbackDialogState({open: false});
@@ -120,7 +119,7 @@ export const OrderTakingSheet = () => {
                 customer: customer._id,
                 comment: comment,
                 time: moment(time),
-                user: user.name
+                user: user.user_name
             };
             addCustomerCallbackTimerToDB(newCallbackItem);
             setCallbackDialogState({open: false});
@@ -210,14 +209,14 @@ export const OrderTakingSheet = () => {
                     disabled={!props.data.active
                     || props.data.on_hold
                     || isCurrentCustomerInvoicesCancelled
-                    || !currentUserHasPermissions(requiredWritePermissions)
+                    || !hasPermission(requiredWritePermissions)
                     }
             >Invoice</Button>
             <Button variant="contained" onClick={() => createCallback(props.data)}
                     disabled={!props.data.active
                     || props.data.on_hold
                     || isCurrentCustomerInvoicesCancelled
-                    || !currentUserHasPermissions(requiredWritePermissions)
+                    || !hasPermission(requiredWritePermissions)
                     }
             >CALL BACK</Button>
             <Button variant="contained"
@@ -238,7 +237,7 @@ export const OrderTakingSheet = () => {
                             }
                         }
                     }}
-                    disabled={!props.data.active || props.data.on_hold || !currentUserHasPermissions(requiredCancelOrderingPermissions)}
+                    disabled={!props.data.active || props.data.on_hold || !hasPermission(requiredCancelOrderingPermissions)}
             >
                 {isCurrentCustomerInvoicesCancelled ? "UNCANCEL" : "CANCEL"}
             </Button>
@@ -586,7 +585,7 @@ export const OrderTakingSheet = () => {
                 agGridProps={gridProps}
             />
         </div>
-        { currentUserHasPermissions(requiredCancelOrderingPermissions) &&
+        { hasPermission(requiredCancelOrderingPermissions) &&
         <Button variant="contained" onClick={handleAddTemporaryCustomer}>Add temporary customer</Button>
         }
     </div>

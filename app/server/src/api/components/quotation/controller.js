@@ -8,7 +8,7 @@ const getAllQuotations = async (req, res, next) => {
 };
 const createNewQuotation = async (req, res, next) => {
     try {
-        const data = req.body
+        const data = req.body;
         res.status(201).json(await QUOTATION_SERVICE.createNewQuotation(data));
     } catch (e) { next(e); }
 }
@@ -33,7 +33,7 @@ const convertQuotationToInvoice = async (req, res, next) => {
         const result = await QUOTATION_SERVICE.convertQuotationToInvoice(
             quotationId, 
             customerId, 
-            createdBy || user?.name || 'system',
+            createdBy || user?.user_name || 'system',
             user?.permissions || []
         );
         

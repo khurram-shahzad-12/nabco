@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {Backdrop, Box, Button, CircularProgress, Grid, TextField, Typography} from "@mui/material";
 import {
-    createCustomerItemsList, currentUserHasPermissions,
+    createCustomerItemsList,
     defaultLoadedFieldData,
     defaultSnackState, editCustomerItemsList,
     fetchDropdownField, fetchEntries, getAndOpenCustomerItemsPrintoutInNewTab
@@ -12,11 +12,12 @@ import Autocomplete from "@mui/material/Autocomplete";
 import DataViewGrid from "../../components/DataViewGrid/DataViewGrid";
 import {CustomerItemRemoveCellRenderer} from "../../components/cellRenderers/CustomerItemRemoveCellRenderer";
 import PrintIcon from '@mui/icons-material/Print';
-
+import { useAuth } from "../../contexts/AuthContext";
 const API_NAME = "/customerItems";
 
 export const CustomerItems = props => {
-    const requiredPriceOverridePermission = [process.env.REACT_APP_WRITE_OVERRIDE_MIN_SALE_PRICE_CLAIM];
+    const {hasPermission} = useAuth();
+    const requiredPriceOverridePermission = process.env.REACT_APP_WRITE_OVERRIDE_MIN_SALE_PRICE_CLAIM;
     const [snackState, setSnackState] = useState(defaultSnackState);
     const {selectedCustomerData} = props;
     const [sendingData, setSendingData] = useState(false);
@@ -107,7 +108,7 @@ export const CustomerItems = props => {
     const handleAddItem = event => {
         event.preventDefault();
         const customer_price = Number(event.target.custom_sale_price.value);
-        if(!currentUserHasPermissions(requiredPriceOverridePermission) && customer_price < selectedItem.min_sale_price) {
+        if(!hasPermission(requiredPriceOverridePermission) && customer_price < selectedItem.min_sale_price) {
             displaySnackState("Price cannot be below minimum sale price", "error", setSnackState);
         } else {
             setCustomerItems({

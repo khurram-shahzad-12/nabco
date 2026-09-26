@@ -17,12 +17,12 @@ const getCustomerGroups = async (req, res, next) => {
 };
 const addCustomerGroups = async (req, res, next) => {
     try {
-        res.status(201).json(await SERVICE_CUSTOMER_GROUPS.insertCustomerGroups(extractProperties(req.body, allowedModifiableProperties), req.auth.payload.permissions));
+        res.status(201).json(await SERVICE_CUSTOMER_GROUPS.insertCustomerGroups(extractProperties(req.body, allowedModifiableProperties)));
     } catch (e) {next(e);}
 };
 const updateCustomerGroups = async (req, res, next) => {
     try {
-        res.status(200).json(await SERVICE_CUSTOMER_GROUPS.updateCustomerGroups(validate.id(req.params.groupId), extractProperties(req.body, allowedModifiableProperties), req.auth.payload.permissions));
+        res.status(200).json(await SERVICE_CUSTOMER_GROUPS.updateCustomerGroups(validate.id(req.params.groupId), extractProperties(req.body, allowedModifiableProperties), req.user?.permissions || []));
     } catch (e) {next(e);}
 };
 const deleteCustomerGroup = async (req, res, next) => {

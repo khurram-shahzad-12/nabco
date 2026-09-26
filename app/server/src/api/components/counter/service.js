@@ -12,10 +12,16 @@ const nextInventorySupplier = async () => {
 
 const nextCustomerAccount = async () => {
     const counter = await CounterModel.findByIdAndUpdate({_id: "customerAccountNo"}, {$inc: {seq: 1}}, {new: true, upsert: true});
-    return `NABC${counter.seq + 9}`
+    return `NABCO${counter.seq + 3000}`
+}
+
+const getArticleNo = async(key) => {
+    const result = await CounterModel.findByIdAndUpdate(key, {$inc: {seq: 1}}, {new: true, upsert: true});
+    return result.seq;
 }
 module.exports={
     getNextQuotationNumber,
     nextInventorySupplier,
     nextCustomerAccount,
+    getArticleNo,
 }
