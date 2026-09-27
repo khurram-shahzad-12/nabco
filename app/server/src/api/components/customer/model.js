@@ -37,6 +37,7 @@ const verifyZones = async (values) => {
     return true
 };
 const verifySalesRep = async (value) => {
+    if (value === null || value === undefined) return true;
     const salesRepID = value.toString();
     const lookup = await SERVICE_CUSTOMER_SALES_REP.checkCustomerSalesRep({_id: salesRepID});
     return (lookup !== null);

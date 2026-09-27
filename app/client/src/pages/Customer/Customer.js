@@ -238,11 +238,11 @@ export const Customer = () => {
             order_taking_days: orderTakingDays,
             payment_taking_days: paymentTakingDays,
             zones: selectedZones,
-            payment_term: paymentTerm,
-            payment_contact_method: paymentContactMethod,
-            payment_method: paymentMethod,
-            sales_rep: customerSalesRep,
-            tele_sales_rep: teleCustomerSalesRep,
+            payment_term: paymentTerm || undefined,
+            payment_contact_method: paymentContactMethod || null,
+            payment_method: paymentMethod || null, 
+            sales_rep: customerSalesRep || null,
+            tele_sales_rep: teleCustomerSalesRep || null,
         };
     };
 
