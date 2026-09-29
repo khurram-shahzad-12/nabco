@@ -19,7 +19,7 @@ import { InventorySupplier } from "./pages/Inventory_Supplier/InventorySupplier"
 import { CustomerTag } from "./pages/Customer_Tag/CustomerTag";
 import { Customer } from "./pages/Customer/Customer";
 import Dashboard from "./components/Dashboard/Dashboard";
-import { OrderTakingSheet } from "./pages/OrderTakingSheet/OrderTakingSheet";
+// import { OrderTakingSheet } from "./pages/OrderTakingSheet/OrderTakingSheet";
 import { ActiveUsers } from "./pages/Users/ActiveUsers";
 import { SupplierInvoices } from "./pages/Supplier_Invoices/SupplierInvoices";
 import { CustomerAccounts } from "./pages/CustomerAccounts/CustomerAccounts";
@@ -80,10 +80,10 @@ const AuthenticatedApp = ({ theme, userPreferences, setUserPreferences }) => {
 			<Route key={Math.random()} path={`/Driver/${encodeURIComponent("Vehicle")}`} element={getNavBarComponent(<VehicleName />)} />
 			<Route key={Math.random()} path={`/Driver/SetCustomerZonev3`} element={getNavBarComponent(<SetCustomerZonesV3 />)} />
 			<Route key={Math.random()} path={`/Driver/${encodeURIComponent("OrderMap")}`} element={getNavBarComponent(<OrderMap />)} />
-			<Route key={Math.random()} path={`/Invoice/ManageInvoices`} element={getNavBarComponent(<Invoices reduced={false} in_person={false} key={uuidv4()} />)} />
-			<Route key={Math.random()} path={`/Invoice/${encodeURIComponent("Invoices(limited)")}`} element={getNavBarComponent(<Invoices reduced={true} in_person={false} key={uuidv4()} />)} />
+			<Route key={Math.random()} path={`/Invoice/ManageInvoices`} element={getNavBarComponent(<Invoices reduced={false} in_person={null} showCreateOrder={false} key={uuidv4()} />)} />
+			<Route key={Math.random()} path={`/Invoice/${encodeURIComponent("Invoices(limited)")}`} element={getNavBarComponent(<Invoices reduced={true} in_person={false} showCreateOrder={true} key={uuidv4()} />)} />
 			<Route key={Math.random()} path={`/Invoice/${encodeURIComponent("Collections")}`} element={getNavBarComponent(<CollectionInvoices reduced={false} in_person={true} key={uuidv4()} />)} />
-			<Route key={Math.random()} path={`/Invoice/${encodeURIComponent("OrderTakingSheet")}`} element={getNavBarComponent(<OrderTakingSheet />)} />
+			{/* <Route key={Math.random()} path={`/Invoice/${encodeURIComponent("OrderTakingSheet")}`} element={getNavBarComponent(<OrderTakingSheet />)} /> */}
 			<Route key={Math.random()} path={`/Accounts/${encodeURIComponent("Receivable")}`} element={getNavBarComponent(<CustomerAccounts />)} />
 			<Route key={Math.random()} path={`/Accounts/${encodeURIComponent("Totals")}`} element={getNavBarComponent(<DriverTotals />)} />
 			<Route key={Math.random()} path={`/Accounts/SupplierInvoices`} element={getNavBarComponent(<SupplierInvoices />)} />
