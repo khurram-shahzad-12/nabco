@@ -421,7 +421,7 @@ const getColumnDefs = (data) => {
             colDef[index] = currentColumnDef;
         }
     });
-    return colDef;
+    return colDef.filter(Boolean);
 };
 
 const getActionColumnDef = (setEditMode, setFormValues, API_NAME, displaySnackState, setSnackState, setSendingData, deleteCallback, disabledDelete, requiredWritePermissions, showImage) => {

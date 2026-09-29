@@ -121,7 +121,7 @@ export const Customer = () => {
             payment_contact_method: "",
             do_not_call_for_payments: false,
             payment_comments: "",
-            zones: selectedZones,
+            // zones: selectedZones,
             director_name: "",
             director_address: "",
             company_number: "",
@@ -196,13 +196,13 @@ export const Customer = () => {
         fetchTags();
         fetchSalesRepData();
         fetchPaymentTermsData();
-        fetchZones();
+        // fetchZones();
         fetchAllEntriesAndSetRowData(API_NAME, null, setSendingData, setRowData, setSnackState);
     };
 
-    const fetchZones = () => {
-        fetchDropdownField("/zone", setZonesData, setSnackState, false);
-    };
+    // const fetchZones = () => {
+    //     fetchDropdownField("/zone", setZonesData, setSnackState, false);
+    // };
 
     const fetchTags = () => {
         fetchDropdownField("/customer-tag", setTagsData, setSnackState, true);
@@ -237,7 +237,7 @@ export const Customer = () => {
             tags: customerTags,
             order_taking_days: orderTakingDays,
             payment_taking_days: paymentTakingDays,
-            zones: selectedZones,
+            // zones: selectedZones,
             payment_term: paymentTerm || undefined,
             payment_contact_method: paymentContactMethod || null,
             payment_method: paymentMethod || null, 
@@ -309,7 +309,7 @@ export const Customer = () => {
         setCustomerTags(formValues.tags ?? []);
         setOrderTakingDays(formValues.order_taking_days ?? []);
         setPaymentTakingDays(formValues.payment_taking_days ?? []);
-        setSelectedZones(formValues.zones ??  [null,null,null,null,null,null,null]);
+        // setSelectedZones(formValues.zones ??  [null,null,null,null,null,null,null]);
         setPaymentTerm(formValues.payment_term ?? '');
         setPaymentContactMethod(formValues.payment_contact_method ?? '');
         setPaymentMethod(formValues.payment_method ?? '');
@@ -675,24 +675,25 @@ export const Customer = () => {
                 type: "text"
             }
         },
-        {
-            field: "zones",
-            label: "Zones",
-            type: "delivery_day_section_picker",
-            columnOrder: 21,
-            defaultState: [null, null, null, null, null, null, null],
-            changeListener: deliveryZoneDaysChangeListener,
-            pickerProps: {
-                zonesData: zonesData
-            },
-            gridProps: {
-                cellRenderer: weekdaysCellRenderer,
-                filter: DeliveryDays_dayOfWeekFilter,
-                filterParams: {
-                    columnName: "zones"
-                }
-            }
-        },
+        // {
+        //     field: "zones",
+        //     label: "Zones",
+        //     type: "delivery_day_section_picker",
+        //     columnOrder: 21,
+        //     defaultState: [null, null, null, null, null, null, null],
+        //     changeListener: deliveryZoneDaysChangeListener,
+        //     pickerProps: {
+        //         zonesData: zonesData
+        //     },
+        //     gridProps: {
+        //         cellRenderer: weekdaysCellRenderer,
+        //         filter: DeliveryDays_dayOfWeekFilter,
+        //         hide:true,
+        //         filterParams: {
+        //             columnName: "zones"
+        //         }
+        //     }
+        // },
         {
             field: "director_name",
             label: "Director Name",
@@ -1380,7 +1381,7 @@ export const Customer = () => {
                                             </LocalizationProvider>
                                         </Grid>
                                         <Grid item xs={12} sm={6}>
-                                            <Grid item xs={12}>
+                                            {/* <Grid item xs={12}>
                                                 <div style={{ height: "350px" }} key={JSON.stringify(selectedZones)}>
                                                     <span>Delivery Day Zones</span>
                                                     <DeliveryDayZonePicker zonesData={zonesData}
@@ -1388,8 +1389,43 @@ export const Customer = () => {
                                                         zoneChange={deliveryZoneDaysChangeListener}
                                                     />
                                                 </div>
+                                            </Grid> */}
+                                         
+                                        </Grid>
+
+                                        <Grid container xs={12} sx={{ paddingTop: "2px", paddingLeft: "16px" }}>
+                                            <Grid item xs={6} pr={4}>
+                                                <Grid item xs={12}>
+                                                <FormControl component="fieldset" variant="standard" key={"order_taking_days"}>
+                                                    <FormLabel component="legend">{"Order Taking Days"}</FormLabel>
+                                                    <FormGroup row>
+                                                        {
+                                                            daysMap?.map((value, index) => {
+                                                                return <FormControlLabel control={<Checkbox checked={(orderTakingDays || []).includes(index)} name={"order_taking_days"} id={index} />} label={value} onChange={event => multiCheckboxChangeListener(event, orderTakingDays, setOrderTakingDays)} />
+                                                            })
+                                                        }
+                                                    </FormGroup>
+                                                </FormControl>
+                                                </Grid>
+                                                                                            <Grid item xs={12}>
+                                                <Controller
+                                                    render={({ field }) =>
+                                                        <TextField
+                                                            {...field}
+                                                            label={"Comments"}
+                                                            name={"comments"}
+                                                            variant="outlined"
+                                                            autoComplete="off"
+                                                            fullWidth
+                                                            multiline
+                                                            rows={2}
+                                                            type={"text"}
+                                                        />}
+                                                    name="comments"
+                                                    control={control}
+                                                />
                                             </Grid>
-                                            <Grid xs={12} container sx={{ mt: "40px" }} spacing={2}>
+                                               <Grid xs={12} container sx={{ mt: "10px" }} spacing={2}>
                                                 {editMode && (<Grid item xs={12} sm={6} md={3}>
                                                     <Controller
                                                         render={({ field }) =>
@@ -1468,39 +1504,8 @@ export const Customer = () => {
                                                     />
                                                 </Grid> */}
                                             </Grid>
-                                        </Grid>
-
-                                        <Grid container xs={12} sm={6} sx={{ paddingTop: "10px", paddingLeft: "16px" }}>
-                                            <Grid item xs={12}>
-                                                <FormControl component="fieldset" variant="standard" key={"order_taking_days"}>
-                                                    <FormLabel component="legend">{"Order Taking Days"}</FormLabel>
-                                                    <FormGroup row>
-                                                        {
-                                                            daysMap?.map((value, index) => {
-                                                                return <FormControlLabel control={<Checkbox checked={(orderTakingDays || []).includes(index)} name={"order_taking_days"} id={index} />} label={value} onChange={event => multiCheckboxChangeListener(event, orderTakingDays, setOrderTakingDays)} />
-                                                            })
-                                                        }
-                                                    </FormGroup>
-                                                </FormControl>
                                             </Grid>
-                                            <Grid item xs={12}>
-                                                <Controller
-                                                    render={({ field }) =>
-                                                        <TextField
-                                                            {...field}
-                                                            label={"Comments"}
-                                                            name={"comments"}
-                                                            variant="outlined"
-                                                            autoComplete="off"
-                                                            fullWidth
-                                                            multiline
-                                                            rows={2}
-                                                            type={"text"}
-                                                        />}
-                                                    name="comments"
-                                                    control={control}
-                                                />
-                                            </Grid>
+                                        <Grid item xs={5.5}>
                                             <Grid item xs={12}>
                                                 <FormControl component="fieldset" variant="standard" key={"payment_taking_days"}>
                                                     <FormLabel component="legend">{"Payment Taking Days"}</FormLabel>
@@ -1512,8 +1517,7 @@ export const Customer = () => {
                                                         }
                                                     </FormGroup>
                                                 </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12}>
+                                            </Grid>                                                    <Grid item xs={12}>
                                                 <Controller
                                                     render={({ field }) =>
                                                         <TextField
@@ -1532,6 +1536,7 @@ export const Customer = () => {
                                                     control={control}
                                                 />
                                             </Grid>
+                                        </Grid>
                                             <Grid item xs={12} sx={{ marginTop: "8px" }}>
                                                 <LoadingButton loading={sendingData} icon={editMode ? <EditIcon /> : <AddIcon />} buttonLabel={`${editMode ? "EDIT" : "ADD"} CUSTOMER`} disabled={sendingData} />
                                                 {editMode ? <Button sx={{ marginLeft: "10px" }} variant="contained" color="error" onClick={disableEditMode} >CANCEL</Button> : ""}

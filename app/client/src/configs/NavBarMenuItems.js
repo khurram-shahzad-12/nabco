@@ -97,7 +97,7 @@ export const menuItems = [
 			process.env.REACT_APP_WRITE_IN_PERSON_INVOICES_CLAIM
 		],
 		subItems: [
-			{ name: "OrderTakingSheet", label: 'Order Taking', icon: <ReceiptIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_INVOICES_CLAIM] },
+			// { name: "OrderTakingSheet", label: 'Order Taking', icon: <ReceiptIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_INVOICES_CLAIM] },
 			{ name: "ManageInvoices", label: 'Management Invoices',icon: <ReceiptIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVOICES_CLAIM] },
 			{ name: "Invoices(limited)",label: 'Delivery Invoices', icon: <ReceiptIcon />, requiredPermissions: [process.env.REACT_APP_READ_INVOICES_LIMITED_CLAIM] },
 			{ name: "Collections", label: 'Collections Invoices', icon: <ReceiptIcon />, requiredPermissions: [process.env.REACT_APP_WRITE_IN_PERSON_INVOICES_CLAIM] },

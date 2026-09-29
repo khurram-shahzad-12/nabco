@@ -32,6 +32,7 @@ import {BalancePaidUnpaidCellRenderer} from "../../components/cellRenderers/Bala
 import {WeightCellRenderer} from "../../components/cellRenderers/WeightCellRenderer";
 import {InvoiceZoneOrderRenderer} from "../../components/cellRenderers/InvoiceZoneOrderRenderer";
 import { useAuth } from '../../contexts/AuthContext';
+import Autocomplete from "@mui/material/Autocomplete";
 
 const Invoices = props => {
     const {hasPermission} = useAuth();
@@ -51,9 +52,12 @@ const Invoices = props => {
     const [endDate, setEndDate] = useState(moment(new Date()).format(momentFormat));
     const [snackState, setSnackState] = useState(defaultSnackState);
     const [paymentsModalData, setPaymentsModalData] = useState({open: false});
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [customersDropdown, setCustomersDropdown] = useState([]);
     const handleCloseDialog = () => setDialogState({open: false});
     const reduced = props.reduced;
-    const inPersonInvoicesOnly = false;
+    const showCreateOrder = props.showCreateOrder === true;
+    const inPersonInvoicesOnly = props.in_person === undefined || props.in_person === null ? null : props.in_person;
 
     const handleOpenPaymentsForm = (data) => setPaymentsModalData({open: true, data: data});
     const handleClosePaymentsForm = () => setPaymentsModalData({open: false});
@@ -88,7 +92,9 @@ const Invoices = props => {
 
     const getInvoicesList = () => {
         setSendingData(true);
-        axios.get(`${process.env.REACT_APP_URL_ROOT}/api/invoice`, {params: {delivery_day_start: startDate, delivery_day_end: endDate, in_person: inPersonInvoicesOnly}})
+        const params = { delivery_day_start: startDate, delivery_day_end: endDate };
+        if (inPersonInvoicesOnly !== null) { params.in_person = inPersonInvoicesOnly; }
+        axios.get(`${process.env.REACT_APP_URL_ROOT}/api/invoice`, { params })
             .then(response => {
                 setInvoicesList(response.data);
             })
@@ -98,7 +104,7 @@ const Invoices = props => {
             })
             .finally(() => {
                 setSendingData(false);
-            })
+            });
     };
 
     const getCustomersData = () => {
@@ -113,9 +119,9 @@ const Invoices = props => {
         fetchDropdownField("/vat", setVatData, setSnackState, false);
     };
 
-    const fetchZones = () => {
-        fetchDropdownField("/zone", setZonesData, setSnackState, false);
-    };
+    // const fetchZones = () => {
+    //     fetchDropdownField("/zone", setZonesData, setSnackState, false);
+    // };
 
     const openInvoice = invoiceNo => {
         getInvoiceReportsInNewTab([invoiceNo], "invoice.pdf", setSnackState);
@@ -150,7 +156,7 @@ const Invoices = props => {
         getInvoicesList();
         getProductsList();
         fetchVat();
-        fetchZones();
+        // fetchZones();
     };
 
     useEffect(() => {
@@ -277,25 +283,25 @@ const Invoices = props => {
             }
         },
         { headerName: "Invoice Date", width: 120, field: "invoice_date", valueGetter: props => moment(props.data.invoice_date).format("DD/MM/YYYY"), comparator: dateStringComparator, filter: false, floatingFilter: false },
-        { headerName: "Zone(Order)", width: 135, resizable: false, field: "customer",
-            valueGetter: props => InvoiceZoneOrderRenderer({...props, customers: customersList, zones: zonesData}),
-            comparator: (valueA, valueB) => {
-                if(valueA === valueB)
-                    return 0;
+        // { headerName: "Zone(Order)", width: 135, resizable: false, field: "customer",
+        //     valueGetter: props => InvoiceZoneOrderRenderer({...props, customers: customersList, zones: zonesData}),
+        //     comparator: (valueA, valueB) => {
+        //         if(valueA === valueB)
+        //             return 0;
 
-                const zoneA = getZoneFromName(valueA.substring(0, valueA.indexOf("(")));
-                const zoneB = getZoneFromName(valueB.substring(0, valueB.indexOf("(")));
+        //         const zoneA = getZoneFromName(valueA.substring(0, valueA.indexOf("(")));
+        //         const zoneB = getZoneFromName(valueB.substring(0, valueB.indexOf("(")));
 
-                if(zoneA.order === zoneB.order) {
-                    const parsedZoneAOrder = valueA.substring(valueA.indexOf("(") + 1, valueA.indexOf(")"));
-                    const parsedZoneBOrder = valueB.substring(valueB.indexOf("(") + 1, valueB.indexOf(")"));
-                    if (parsedZoneAOrder === parsedZoneBOrder) return 0;
-                    return (Number(parsedZoneAOrder) < Number(parsedZoneBOrder)) ? -1 : 1;
-                }
+        //         if(zoneA.order === zoneB.order) {
+        //             const parsedZoneAOrder = valueA.substring(valueA.indexOf("(") + 1, valueA.indexOf(")"));
+        //             const parsedZoneBOrder = valueB.substring(valueB.indexOf("(") + 1, valueB.indexOf(")"));
+        //             if (parsedZoneAOrder === parsedZoneBOrder) return 0;
+        //             return (Number(parsedZoneAOrder) < Number(parsedZoneBOrder)) ? -1 : 1;
+        //         }
 
-                return zoneA.order < zoneB.order ? -1 : 1;
-            }
-        },
+        //         return zoneA.order < zoneB.order ? -1 : 1;
+        //     }
+        // },
         //  { headerName: "Zone(Map)", width: 130, resizable: false, field: "zone",valueGetter:(params)=>{return params.data?.zone||"Not Assigned"}},
         { headerName: "Inv Weight", width: 110, resizable: false, field: "items", type: "rightAligned", valueGetter: WeightCellRenderer, comparator: stringValueToNumberComparator, filter: false, floatingFilter: false },
         { headerName: "Inv Value", width: 110, resizable: false, field: "total_incl_vat", type: "rightAligned", valueGetter: PriceCellRenderer, comparator: stringValueToNumberComparator },
@@ -322,6 +328,17 @@ const Invoices = props => {
                 return valueA < valueB ? 1 : -1;
             }
         },
+        {
+            headerName: "Type",
+            width: 110,
+            resizable: false,
+            field: "in_person",
+            valueGetter: params => params.data.in_person ? "Collection" : "Delivery",
+            cellStyle: params => ({
+                color: params.data.in_person ? "#1565c0" : "#6a1b9a",
+                fontWeight: 600
+            })
+        },
         { headerName: "Actions", field: "_id",
             filter: false,
             cellRenderer: InvoiceActionCellRenderer,
@@ -344,7 +361,28 @@ const Invoices = props => {
     const getSelectedInvoicesCount = () => {
         return selectedInvoices.length > 0 ? `(${selectedInvoices.length})`: ""
     };
+    useEffect(() => {
+        const customersArray = [];
+        Object.keys(customersList.map).forEach(customer_id => {
+            (customersList.map[customer_id].active && !customersList.map[customer_id].on_hold) &&
+                customersArray.push(customersList.map[customer_id]);
+        });
+        setCustomersDropdown(customersArray);
+    }, [customersList]);
 
+    const handleCustomerChange = (event, newCustomer) => {
+        setSelectedCustomer(newCustomer);
+    };
+
+    const createOrder = () => {
+        setDialogState({
+            open: true,
+            mode: "ORDER",           
+            canEdit: true,
+            selectedCustomer: selectedCustomer,
+            selectedOTDate: moment().format(momentFormat)
+        });
+    };
     return (
         <div style={{width: "100%", height: "90%"}}>
             <CustomisedSnackBar {...snackState} setClosed={setSnackState} />
@@ -380,21 +418,44 @@ const Invoices = props => {
                     </div>
                 </CardContent>
             </Card>
+            {showCreateOrder && (<><Autocomplete
+                name="Customer"
+                options={customersDropdown}
+                onChange={(event, newCustomer) => handleCustomerChange(event, newCustomer)}
+                autoComplete={false}
+                value={selectedCustomer}
+                disableClearable
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        variant="standard"
+                        label={"Customer"}
+                    />
+                )}
+                getOptionLabel={option => option.customer_name}
+            />
+            <Button
+                variant="contained"
+                disabled={selectedCustomer == null}
+                onClick={createOrder}
+            >
+                Create Delivery Invoice
+            </Button></>)}
             <div style={functionButtonsStyle}>
                 <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoice.pdf")}>View Invoice(s){getSelectedInvoicesCount()}</Button>
                 {/* <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleInvoiceReprintReports("invoiceReprint.pdf")}>Reprint Invoice(s){getSelectedInvoicesCount()}</Button> */}
-                <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoiceByZone.pdf")}>Invoice(s) by Zone{getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoiceByZone.pdf")}>Invoice(s) by Zone{getSelectedInvoicesCount()}</Button> */}
                 {/* <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("invoiceByZoneMap.pdf")}>Invoice(s) by Zone(Map){getSelectedInvoicesCount()}</Button> */}
                 <Button variant="contained" className={styles.btnPickList} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("picklist.pdf")}>Picklist{getSelectedInvoicesCount()}</Button>
                 {/* <Button variant="contained" className={styles.btnPickListShortages} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("picklistshortages.pdf")}>Picklist-Shortages{getSelectedInvoicesCount()}</Button> */}
-                <Button variant="contained" className={styles.btnZoneRun} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("zonerun.pdf")}>Zone Run List{getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" className={styles.btnZoneRun} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("zonerun.pdf")}>Zone Run List{getSelectedInvoicesCount()}</Button> */}
                 {/* <Button variant="contained" className={styles.btnZoneRun} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("zonerunMap.pdf")}>Zone Run List(Map){getSelectedInvoicesCount()}</Button> */}
-                <Button variant="contained" className={styles.btnVanLoadShopwise} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("vanloadshopwise.pdf")}>Wearhouses Picking Slip{getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" className={styles.btnVanLoadShopwise} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("vanloadshopwise.pdf")}>Wearhouses Picking Slip{getSelectedInvoicesCount()}</Button> */}
                 {/* <Button variant="contained" className={styles.btnVanLoadShopwise} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("vanloadshopwiseMap.pdf")}>Van Load Shopwise(Map){getSelectedInvoicesCount()}</Button> */}
                 {(hasPermission(requiredCustomerStatementPermissions) && selectedInvoices.length > 0 && sameCustomerInvoicesSelected()) &&
                 <Button variant="contained" className={styles.btnCustomerStatement} disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("customerstatement.pdf")}>Customer Statement{getSelectedInvoicesCount()}</Button>
                 }
-                <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("deliveryNote.pdf")}>Delivery Note{getSelectedInvoicesCount()}</Button>
+                {/* <Button variant="contained" disabled={selectedInvoices.length === 0} onClick={() => openMultipleReports("deliveryNote.pdf")}>Delivery Note{getSelectedInvoicesCount()}</Button> */}
                 {(hasPermission(requiredProfitPermissions) && selectedInvoices.length > 0) && <Button variant="contained" disabled>Total Profit: {getSelectedInvoicesProfitTotal()}</Button>}
             </div>
             <div style={{height: "90%"}}>
@@ -404,8 +465,8 @@ const Invoices = props => {
                                   !(
                                       customersList.loaded &&
                                       productsList.loaded &&
-                                      vatData.loaded &&
-                                      zonesData.loaded
+                                      vatData.loaded
+                                    //   zonesData.loaded
                                   ) || sendingData
                               }
                               postFilterChangedCallback={filterChangedHandler}

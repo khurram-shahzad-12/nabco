@@ -140,6 +140,251 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
             ]
         }
     };
+    const ORDER_CONFIRMATION_TEXT = [
+    "Please check the details on the attached order confirmation thoroughly.",
+    "",
+    "We will assume that all details are correct unless we hear otherwise from you before the equipment is despatched. Regrettably, we are unable to consider any discrepancy after this time and any cost of rectifying the discrepancy will be at your own expense.",
+    "",
+    "Please note that all delivery services provided by Nabco Direct Ltd are outsourced to transport companies. All clients of Nabco Direct who use this service do so with the understanding that no claim can be entertained for late delivery, which may result in increased expenditure by the purchaser. The driver will wait up to 20 minutes on site, if there is no response or obvious parking they will move on and attempt redelivery the following day. Re-delivery charges will apply.",
+    "",
+    "Any claims for damages must be reported to Nabco Direct within 7 days of receipt of all goods, any claims after the 7 days cannot be submitted for claim approval. All customers and third-party recipients are required to sign for all deliveries as Unchecked or Damaged, failure to do so will jeopardize any subsequent claim. Failure to agree to this point reverts the agreement.",
+    "",
+    "Returns must be made within 28 days of the goods being received. Any products that are being returned must be itemized using the returns column which can be found on the delivery note. Any returns received without a completed returns form will not be accepted. It is the responsibility of the client to ensure when packaging, that the goods are protected. Returns must be received in a saleable condition, which is the condition you received the goods. There will be a restocking fee of 20% of the value of goods, to cover checking in, processing credits and the restocking of our warehouse.",
+    "",
+    "",
+    "",
+    "Please find attached a copy of our full terms and conditions for your reference.",
+].join("\n");
+
+const getOrderConfirmationPage = (logo) => ({
+    pageMargins: [60, 100, 60, 80],
+    defaultStyle: {font: "Roboto", fontSize: 12},
+
+    header: {
+        margin: [10, 40, 20, 10],
+        text: "ORDER CONFIRMATION",
+        bold: true,
+        alignment: "center",
+        fontSize: 20,
+    },
+
+    content: [
+        {text: ORDER_CONFIRMATION_TEXT, alignment: "justify", lineHeight: 1.3},
+    ],
+
+    footer: function(currentPage, pageCount) {
+    return {
+        table: {
+            widths: ["40%", "35%", "25%"],
+            body: [
+                [
+                    {
+                        fillColor: "#1F4E78",
+                        color: "white",
+                        margin: [8, 8, 8, 8],
+                        text: [
+                            {
+                                text: "Head Office,\n\n",
+                                bold: true,
+                                fontSize: 11
+                            },
+                            {
+                                text: "Nabco, Unit 5a, Brick Knoll Park,\n"
+                            },
+                            {
+                                text: "Ashley Road, St Albans, Herts, AL1 5UG"
+                            }
+                        ],
+                        fontSize: 9,
+                        alignment: "left",
+                    },
+                    {
+                        fillColor: "#1F4E78",
+                        color: "white",
+                        margin: [8, 8, 8, 8],
+                        text: [
+                            {
+                                text: "Contact:\n\n",
+                                bold: true,
+                                fontSize: 11
+                            },
+                            {
+                                text: "+44 (0)1727 841828\n"
+                            },
+                            {
+                                text: "info@nabcouk.com"
+                            }
+                        ],
+                        fontSize: 9,
+                        alignment: "center",
+                    },
+                    {
+                        fillColor: "#1F4E78",
+                        alignment: "right",
+                        image: logo,
+                        fit: [100, 50],
+                        margin: [0, 5, 5, 5],
+                    }
+                ]
+            ]
+        },
+        layout: {
+            hLineWidth: function() {
+                return 0;
+            },
+            vLineWidth: function() {
+                return 0;
+            },
+            paddingLeft: function() {
+                return 0;
+            },
+            paddingRight: function() {
+                return 0;
+            },
+            paddingTop: function() {
+                return 0;
+            },
+            paddingBottom: function() {
+                return 0;
+            }
+        },
+        margin: [40, 0, 40, 15]
+    };
+},
+});
+const TERMS_AND_CONDITIONS_SECTIONS = [
+    { type: "heading", text: "1. DEFINITIONS" },
+    { type: "body", text: "In this document the following words shall have the following meanings:" },
+    { type: "body", text: "1.1 \"Agreement\" means these Terms and Conditions together with the terms of any applicable Order Acknowledgement." },
+    { type: "body", text: "1.2 \"Customer\" means the organisation or person who purchases goods and services from the Supplier." },
+    { type: "body", text: "1.3 \"Intellectual Property Rights\" means all patents, registered and unregistered designs, copyright, trademarks, know-how and all other forms of intellectual property wherever in the world enforceable." },
+    { type: "body", text: "1.4 \"Order Acknowledgement\" means a statement of work, quotation or other similar document describing the goods and services to be provided by the Supplier." },
+    { type: "body", text: "1.5 \"Supplier\" means Nabco Direct Ltd of Unit 5A, Brick Knoll Park, Ashley Road, St. Albans, Herts, AL1 5UG." },
+    { type: "heading", text: "2. GENERAL" },
+    { type: "body", text: "2.1 These Terms and Conditions shall apply to all contracts for the supply of goods and services by the Supplier to the Customer." },
+    { type: "body", text: "2.2 Before the commencement of the supply of goods the Supplier shall submit to the Customer an Order Acknowledgement which shall specify the goods and services to be supplied and the price payable. The Customer shall notify the Supplier immediately if the Customer does not agree with the contents of the Order Acknowledgement. All Order Acknowledgements shall be subject to these Terms and Conditions." },
+    { type: "body", text: "2.3 The Supplier shall use all reasonable endeavours to complete the services within estimated time frames but time shall not be of the essence in the performance of any services." },
+    { type: "heading", text: "3. PRICE AND PAYMENT" },
+    { type: "body", text: "3.1 The price for the supply of goods and services are as set out in the Order Acknowledgement. Payment terms are as set out in the Additional Terms of this Agreement." },
+    { type: "body", text: "3.2 Invoiced amounts shall be due and payable in compliance with the terms enclosed in the Order Acknowledgement. The Supplier shall be entitled to charge interest on overdue invoices from the date when payment becomes due from day to day until the date of payment at a rate of 4.00% per annum above the base rate of the Bank of England. In the event that the Customer's procedures require that an invoice be submitted against a purchase order to payment, the Customer shall be responsible for issuing such purchase order before the goods and services are supplied." },
+    { type: "body", text: "3.3 Should Debit Collection Services be necessary to retrieve amounts outstanding, the Customer will be liable for any costs incurred." },
+    { type: "heading", text: "4. SPECIFICATION OF THE GOODS" },
+    { type: "body", text: "All goods shall be required only to conform to the specification in the Order Acknowledgement. For the avoidance of doubt no description, specification or illustration contained in any product pamphlet or other sales or marketing literature of the Supplier and no representation written or oral, correspondence or statement shall form part of the contract." },
+    { type: "heading", text: "5. DELIVERY" },
+    { type: "body", text: "5.1 The date of delivery specified by the Supplier is an estimate only. Time for delivery shall not be of the essence of the contract and the Supplier shall not be liable for any loss, costs, damages, charges or expenses caused directly or indirectly by any delay in the delivery of the goods." },
+    { type: "body", text: "5.2 All risks in the goods shall pass to the Customer upon delivery." },
+    { type: "heading", text: "6. TITLE" },
+    { type: "body", text: "Title in the Goods shall not pass to the Customer until the Supplier has been paid in full for the Goods." },
+    { type: "heading", text: "7. CUSTOMER'S OBLIGATIONS" },
+    { type: "body", text: "7.1 To enable the Supplier to perform its obligations under this Agreement the Customer shall:" },
+    { type: "body", text: "7.1.1 co-operate with the Supplier;" },
+    { type: "body", text: "7.1.2 provide the Supplier with any information reasonably required by the Supplier;" },
+    { type: "body", text: "7.1.3 obtain all necessary permissions and consents which may be required before the commencement of the services; and" },
+    { type: "body", text: "7.1.4 comply with such other requirements as may be set out in the Order Acknowledgement or otherwise agreed between the parties." },
+    { type: "body", text: "7.2 The Customer shall be liable to compensate the Supplier for any expenses incurred by the Supplier as a result of the Customer's failure to comply with Clause 7.1." },
+    { type: "body", text: "7.3 Without prejudice to any other rights to which the Supplier may be entitled, in the event that the Customer unlawfully terminates or cancels the goods and services agreed to in the Order Acknowledgement, the Customer shall be required to pay to the Supplier as agreed damages and not as a penalty the full amount of any third-party costs to which the Supplier has committed." },
+    { type: "body", text: "7.4 In the event that the Customer or any third party, not being a sub-contractor of the Supplier, shall omit or commit anything which prevents or delays the Supplier from undertaking or complying with any of its obligations under this Agreement, then the Supplier shall notify the Customer as soon as possible and:" },
+    { type: "body", text: "7.4.1 the Supplier shall have no liability in respect of any delay to the completion of any project;" },
+    { type: "body", text: "7.4.2 if applicable, the timetable for the project will be modified accordingly;" },
+    { type: "body", text: "7.4.3 the Supplier shall notify the Customer at the same time if it intends to make any claim for additional costs." },
+    { type: "heading", text: "8. ALTERATIONS TO THE ORDER ACKNOWLEDGEMENT" },
+    { type: "body", text: "8.1 The parties may at any time mutually agree upon and execute new Order Acknowledgements. Any alterations in the scope of goods and/or services to be provided under this Agreement shall be set out in the Order Acknowledgement, which shall reflect the changed goods and/or services and price and any other terms agreed between the parties." },
+    { type: "body", text: "8.2 The Customer may at any time request alterations to the Order Acknowledgement by appealing directly to the Supplier. On request for alterations, the Supplier shall supply and submit to the customer an amended Order Acknowledgement, showing altered goods and services and the effect of such alterations, if any, on the price and any other terms already agreed between the parties." },
+    { type: "heading", text: "9. WARRANTY" },
+    { type: "body", text: "9.1 The Supplier warrants that as from the date of delivery for a period of 1 year the goods and all their component parts, where applicable, are free from any defects in design, workmanship, construction or materials." },
+    { type: "body", text: "9.2 The Supplier warrants that the services performed under this Agreement shall be performed using reasonable skill and care, and of a quality conforming to generally accepted industry standards and practices." },
+    { type: "body", text: "9.3 Except as expressly stated in this Agreement, all warranties whether express or implied, by operation of law or otherwise, are hereby excluded in relation to the goods and services to be provided by the Supplier." },
+    { type: "heading", text: "10. INDEMNIFICATION" },
+    { type: "body", text: "The Customer shall indemnify the Supplier against all claims, costs and expenses which the Supplier may incur and which arise, directly or indirectly, from the Customer's breach of any of its obligations under this Agreement, including any claims brought against the Supplier alleging that any goods and/or services provided by the Supplier in accordance with the Order Acknowledgement infringes a patent, copyright or trade secret or other similar right of a third party." },
+    { type: "heading", text: "11. LIMITATION OF LIABILITY" },
+    { type: "body", text: "11.1 Except in respect of death or personal injury due to negligence for which no limit applies, the entire liability of the Supplier to the Customer in respect of any claim whatsoever or breach of this Agreement, whether or not arising out of negligence, shall be limited to the price paid by the Customer to which the claim relates." },
+    { type: "body", text: "11.2 In no event shall the Supplier be liable to the Customer for any loss of business, loss of opportunity or loss of profits or for any other indirect or consequential loss or damage whatsoever. This shall apply even where such a loss was reasonably foreseeable or the Supplier had been made aware of the possibility of the Customer incurring such a loss." },
+    { type: "body", text: "11.3 Nothing in these Terms and Conditions shall exclude or limit the Supplier's liability for death or personal injury resulting from the Supplier's negligence or that of its employees, agents or sub-contractors." },
+    { type: "heading", text: "12. TERMINATION" },
+    { type: "body", text: "Either party may terminate this Agreement forthwith by notice in writing to the other if:" },
+    { type: "body", text: "12.1 the other party commits a material breach of this Agreement and, in the case of a breach capable of being remedied, fails to remedy it within 30 calendar days of being given written notice from the other party to do so;" },
+    { type: "body", text: "12.2 the other party commits a material breach of this Agreement which cannot be remedied under any circumstances;" },
+    { type: "body", text: "12.3 the other party passes a resolution for winding up (other than for the purpose of solvent amalgamation or reconstruction), or a court of competent jurisdiction makes an order to that effect;" },
+    { type: "body", text: "12.4 the other party ceases to carry on its business or substantially the whole of its business; or" },
+    { type: "body", text: "12.5 the other party is declared insolvent, or convenes a meeting of or makes or proposes to make any arrangement or composition with its creditors; or a liquidator, receiver, administrative receiver, manager, trustee or similar officer is appointed over any of its assets." },
+    { type: "heading", text: "13. INTELLECTUAL PROPERTY RIGHTS" },
+    { type: "body", text: "All Intellectual Property Rights produced from or arising as a result of the performance of this Agreement shall, so far as not already vested, become the absolute property of the Supplier, and the Customer shall do all that is reasonably necessary to ensure that such rights vest in the Supplier by the execution of appropriate instruments or the making of agreements with third parties." },
+    { type: "heading", text: "14. FORCE MAJEURE" },
+    { type: "body", text: "Neither party shall be liable for any delay or failure to perform any of its obligations if the delay or failure results from events or circumstances outside its reasonable control, including but not limited to acts of God, strikes, lockouts, accidents, war, fire, the act or omission of government, highway authorities or any telecommunications carrier, operator or administration or other competent authority, or the delay or failure in manufacture, production, or supply by third parties of equipment or services, and the party shall be entitled to a reasonable extension of its obligations after notifying the other party of the nature and extent of such events." },
+    { type: "heading", text: "15. INDEPENDENT CONTRACTORS" },
+    { type: "body", text: "The Supplier and the Customer are contractors independent of each other, and neither has the authority to bind the other to any third party or act in any way as the representative of the other, unless otherwise expressly agreed to in writing by both parties. The Supplier may, in addition to its own employees, engage sub-contractors to provide all or part of the services being provided to the Customer and such engagement shall not relieve the Supplier of its obligations under this Agreement or any applicable Order Acknowledgement." },
+    { type: "heading", text: "16. ASSIGNMENT" },
+    { type: "body", text: "The Customer shall not be entitled to assign its rights or obligations or delegate its duties under this Agreement without the prior written consent of the Supplier." },
+    { type: "heading", text: "17. SEVERABILITY" },
+    { type: "body", text: "If any provision of this Agreement is held invalid, illegal or unenforceable for any reason by any Court of competent jurisdiction such provision shall be severed and the remainder of the provisions herein shall continue in full force and effect as if this Agreement had been agreed with the invalid illegal or unenforceable provision eliminated." },
+    { type: "heading", text: "18. WAIVER" },
+    { type: "body", text: "The failure by either party to enforce at any time or for any period any one or more of the Terms and Conditions herein shall not be a waiver of them or of the right at any time subsequently to enforce all Terms and Conditions of this Agreement." },
+    { type: "heading", text: "19. NOTICES" },
+    { type: "body", text: "Any notice to be given by either party to the other may be served by email, fax, personal service or by post to the address of the other party given in the here signed Terms and Conditions or such other address as such party may from time to time have communicated to the other in writing, and if sent by email shall unless the contrary is proved be deemed to be received on the day it was sent, if sent by fax shall be deemed to be served on receipt of an error-free transmission report, if given by letter shall be deemed to have been served at the time at which the letter was delivered personally or if sent by post shall be deemed to have been delivered in the ordinary course of post." },
+    { type: "heading", text: "20. ENTIRE AGREEMENT" },
+    { type: "body", text: "This Agreement contains the entire agreement between the parties relating to the subject matter and supersedes any previous agreements, arrangements, undertakings or proposals, oral or written. Unless expressly provided elsewhere in this Agreement, this Agreement may be varied only by a document signed by both parties." },
+    { type: "heading", text: "21. NO THIRD PARTIES" },
+    { type: "body", text: "Nothing in this Agreement is intended to, nor shall it confer any rights on a third party." },
+    { type: "heading", text: "22. GOVERNING LAW AND JURISDICTION" },
+    { type: "body", text: "This Agreement shall be governed by and construed in accordance with the law of England & Wales and the parties hereby submit to the exclusive jurisdiction of the courts." },
+    { type: "heading", text: "23. RETURN POLICY" },
+    { type: "body", text: "Following this review, we have updated our returns policy, and the following measures must be followed to ensure you get credit for the products you have returned." },
+    { type: "body", text: "Any products that are being returned must be itemised using the returns column which can be found on the delivery note. This will allow us to check the stock being returned quickly leading to you receiving your credit quicker. Any returns received without a completed returns form will not be accepted." },
+    { type: "body", text: "Returns must take place within 28 days of the goods being received." },
+    { type: "body", text: "Returns must be received in a saleable condition which is the condition you received the goods. Please ensure when packaging returns there is adequate packaging to protect the product. This packaging and transit are the responsibility of the customer to ensure it arrives at Nabco Warehouse in the condition it left your site. Any returns received which are damaged in any way on receipt by Nabco will not be credited." },
+    { type: "body", text: "When returns are received there is a cost to check the returns list, process any credit and place products back into our warehouse. To cover this cost, there will be a restocking fee of 20% of the value of the goods." },
+    { type: "body", text: "Please check our standard terms and conditions for the supply of goods and services which can be found on our website for full details." },
+];
+const getTermsAndConditionsPage = () => {
+    const splitHeading = "11. LIMITATION OF LIABILITY";
+    const splitIndex = TERMS_AND_CONDITIONS_SECTIONS.findIndex(
+        s => s.type === "heading" && s.text === splitHeading
+    );
+
+    const leftSections  = splitIndex > 0
+        ? TERMS_AND_CONDITIONS_SECTIONS.slice(0, splitIndex)
+        : TERMS_AND_CONDITIONS_SECTIONS.slice(0, Math.ceil(TERMS_AND_CONDITIONS_SECTIONS.length / 2));
+    const rightSections = splitIndex > 0
+        ? TERMS_AND_CONDITIONS_SECTIONS.slice(splitIndex)
+        : TERMS_AND_CONDITIONS_SECTIONS.slice(Math.ceil(TERMS_AND_CONDITIONS_SECTIONS.length / 2));
+
+    const buildNodes = (sections) =>
+        sections.map(s => s.type === "heading"
+            ? {
+                  text: s.text,
+                  bold: true,
+                  fontSize: 8,   
+                  margin: [0, 0, 0, 0],
+              }
+            : {
+                  text: s.text,
+                  fontSize: 6,       
+                  lineHeight: 1.15,
+                  margin: [0, 0, 0, 0],
+              }
+        );
+
+    return {
+        pageMargins: [20, 30, 20, 20],
+        defaultStyle: { font: "Roboto", fontSize: 7, lineHeight: 1.15 },
+        header: {
+            margin: [20, 10, 20, 10],
+            text: "TERMS & CONDITIONS - Nabco",
+            bold: true,
+            alignment: "center",
+            fontSize: 12,
+        },
+        content: [
+            {
+                columns: [
+                    { width: "50%", stack: buildNodes(leftSections),  alignment: "justify" },
+                    { width: "50%", stack: buildNodes(rightSections), alignment: "justify" },
+                ],
+                columnGap: 12,
+            },
+        ],
+    };
+};
     const UNDERSCORE = "_________________________________";
     const SIGNATURE_CELL_MARGIN = [1, 10, 1, 1];
     const getInvoiceDefinition = invoice => {
@@ -372,7 +617,10 @@ const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = f
     };
     let invoicePDFDocuments = [];
     Invoices.forEach(invoice => {
+        const invoiceDateConfig = getInvoiceConfigForDate(invoice.invoice_date);
+        invoicePDFDocuments.push(pdfPrinter.createPdfKitDocument(getOrderConfirmationPage(currentConfig.logo)));
         invoicePDFDocuments.push(pdfPrinter.createPdfKitDocument(getInvoiceDefinition(invoice)));
+        invoicePDFDocuments.push(pdfPrinter.createPdfKitDocument(getTermsAndConditionsPage()));
     });
 
     const folderID = uuidv4();
