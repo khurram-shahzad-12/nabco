@@ -402,27 +402,28 @@ const getTermsAndConditionsPage = () => {
             //         },
             //     ],
             // },
-             header: {margin: [20, 10, 20, 10], text: invoice.in_person ? "COLLECTION" : "DELIVERY", width: '*', bold: true, alignment: 'center', fontSize:16 },
+            header: { margin: [20, 10, 20, 10], text: invoice.in_person ? "COLLECTION" : "DELIVERY", width: '*', bold: true, alignment: 'center', fontSize: 16 },
             footer: (currentPage, pageCount) => footerFunction(currentPage, pageCount, invoice.customer, invoice.cash_invoice, currentInvoiceConfigData.footer),
             content: [
                 {
                     margin: [0, 0, 0, 15],
-                    columns:[{image: currentConfig.logo, fit: [140, 75], width: "70%", margin: [20, 0, 0, 0]},{text: currentInvoiceConfigData.addressLines.join("\n"), width: '30%'}]
+                    columns: [{ image: currentConfig.logo, fit: [140, 75], width: "70%", margin: [20, 0, 0, 0] }, { text: currentInvoiceConfigData.addressLines.join("\n"), width: '30%' }]
                 },
-                {text: Customers[invoice.customer].payment_term ? `Payment Term: ${PaymentTerms[Customers[invoice.customer].payment_term]?.name}\n` : "Payment Term: PAYMENT ON DELIVERY", fontSize: 12, bold: true, width: "*", alignment:'center', decoration: "underline"},
-                { margin: [20, 15, 0, 0], 
-                columns: [
+                { text: Customers[invoice.customer].payment_term ? `Payment Term: ${PaymentTerms[Customers[invoice.customer].payment_term]?.name}\n` : "Payment Term: PAYMENT ON DELIVERY", fontSize: 12, bold: true, width: "*", alignment: 'center', decoration: "underline" },
+                {
+                    margin: [20, 15, 0, 0],
+                    columns: [
                         {
                             text: invoice.cash_invoice ? '' : [
-                                `${Customers[invoice.customer].legal_entity}\n`,
+                                ...(Customers[invoice.customer].legal_entity ? [`${Customers[invoice.customer].legal_entity}\n`] : []),
                                 `T/A\n`,
-                                `${Customers[invoice.customer].customer_name}\n`,
-                                `${Customers[invoice.customer].mobile}\n`,
-                                `${Customers[invoice.customer].address}\n`,
-                                `${Customers[invoice.customer].city}\n`,
-                                `${Customers[invoice.customer].postcode}\n`,
+                                ...(Customers[invoice.customer].customer_name ? [`${Customers[invoice.customer].customer_name}\n`] : []),
+                                ...(Customers[invoice.customer].mobile ? [`${Customers[invoice.customer].mobile}\n`] : []),
+                                ...(Customers[invoice.customer].address ? [`${Customers[invoice.customer].address}\n`] : []),
+                                ...(Customers[invoice.customer].city ? [`${Customers[invoice.customer].city}\n`] : []),
+                                ...(Customers[invoice.customer].postcode ? [`${Customers[invoice.customer].postcode}\n`] : []),
                             ],
-                            width: '70%',
+                            width: '70%'
                         },
                         // {text: Customers[invoice.customer].payment_term ? `Payment Term: ${PaymentTerms[Customers[invoice.customer].payment_term]?.name}\n` : "Payment Term: PAYMENT ON DELIVERY", fontSize: 12, bold: true, width: "35%"},
                         {
