@@ -336,7 +336,7 @@ const emailInvoiceToCustomer = async (invoice, invoicePdfBuffer, res) => {
     const projection = ['customer_name', 'legal_entity', 'email'];
     const invoiceCustomer = await SERVICE_CUSTOMER.fetchOneCustomer({_id: invoice.customer}, projection);
     if(invoiceCustomer.email.trim().length > 0) {
-        const addressee = invoiceCustomer.legal_entity.trim().length > 0 ? invoiceCustomer.legal_entity : invoiceCustomer.customer_name;
+        const addressee = invoiceCustomer.customer_name;
         transporter.sendMail({
             from: `"Nabco" <${env.EMAIL_ADDRESS}>`,
             to: invoiceCustomer.email,
