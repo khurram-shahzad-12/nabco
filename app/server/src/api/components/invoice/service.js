@@ -14,7 +14,7 @@ let transporter = null;
 
 if(env.EMAIL_ENABLED) {
     transporter = nodemailer.createTransport({
-        host: 'smtp.office365.com',
+        host: 'smtp.gmail.com',
         port: 587,
         auth: {
             user: env.EMAIL_ADDRESS,
@@ -315,10 +315,15 @@ const getInvoiceEmailBody = addressee => {
         <div style="background-color: #f4f4f3; width: 500px">
             <h4>Greetings ${addressee},</h4>
             <h4>Please find attached the invoice for your recent order.</h4>
-            <h4>Regards, <br />Spice Direct Wholesale LTD.</h4>
+            <h4>Regards, <br />Nabco Direct LTD.</h4>
         </div>
         <div style="width: 500px; background-color: #16212f; color: white; text-align: center">
         ${getLatestAddressHTML()}
+        <br />
+            <p3><strong>Bank Details</strong></p3><br />
+            <p3>Account Name: NABCO DIRECT LIMITED</p3><br />
+            <p3>Sort Code: 40-04-28</p3><br />
+            <p3>Account Number: 61398679</p3
         </div>
         
         </div>`;
@@ -333,11 +338,11 @@ const emailInvoiceToCustomer = async (invoice, invoicePdfBuffer, res) => {
     if(invoiceCustomer.email.trim().length > 0) {
         const addressee = invoiceCustomer.legal_entity.trim().length > 0 ? invoiceCustomer.legal_entity : invoiceCustomer.customer_name;
         transporter.sendMail({
-            from: `"Nabco" <${env.EMAIL_ADDRESS}>`, // sender address
-            to: env.NODE_ENV === 'development' ? 'omera8@hotmail.com' : invoiceCustomer.email, // list of receivers
-            subject: "Order created", // Subject line
-            text: `Greetings ${addressee}, please find attached the invoice for your recent order.`, // plain text body
-            html: getInvoiceEmailBody(addressee), // html body
+            from: `"Nabco" <${env.EMAIL_ADDRESS}>`,
+            to: invoiceCustomer.email,
+            subject: "Order created",
+            text: `Greetings ${addressee}, please find attached the invoice for your recent order.`,
+            html: getInvoiceEmailBody(addressee),
             attachments: [
                 {
                     filename: "nabco.jpg",

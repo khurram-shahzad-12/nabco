@@ -331,7 +331,7 @@ const NavBar = (props) => {
                     <MenuIcon />
                 </IconButton>
                 <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                    SPICE DIRECT LTD
+                    NABCO DIRECT LTD
                 </Typography>
                 {/*<span style={{marginRight: "2em"}}>{state}({remaining})</span>*/}
                 <SettingsIcon onClick={() => setSettingsOpen(true)} style={{ marginRight: "2em" }} />
