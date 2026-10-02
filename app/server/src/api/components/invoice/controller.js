@@ -126,7 +126,7 @@ const emailInvoice = async (req, res, next) => {
     if (!(req.params.id && validate.id(req.params.id))) throw new Error("Invalid ID");
     try {
         const invoice = await SERVICE_INVOICE.fetchOneInvoice({_id: req.params.id});
-        const invoicePdfBuffer = await SERVICE_INVOICE_PDF.generateInvoicePDF([invoice._id]);
+        const invoicePdfBuffer = await SERVICE_INVOICE_PDF.generateEmailInvoicePDF([invoice._id]);
         await SERVICE_INVOICE.emailInvoiceToCustomer(invoice, invoicePdfBuffer, res);
     } catch (e) {next(e);}
 };
