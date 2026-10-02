@@ -48,6 +48,33 @@ const renderTableHeader = ({ doc, x, y, columnWidth }) => {
     doc.text('Unit', x + col1 + col2 + col3, y + 5, { width: col4 - 5, align: 'right' });
     return rowHeight + 10;
 };
+const formatAddressMultiline = (address, minSplitIndex = 10) => {
+    if (!address || typeof address !== 'string') return '';
+    const parts = [];
+    let currentLine = '';
+    let searchStartIndex = 0;
+    while (searchStartIndex < address.length) {
+        const commaIndex = address.indexOf(',', searchStartIndex);
+        if (commaIndex === -1) {
+            currentLine += address.slice(searchStartIndex);
+            break;
+        }
+        const positionInCurrentLine = currentLine.length + (commaIndex - searchStartIndex);
+        if (positionInCurrentLine >= minSplitIndex) {
+            currentLine += address.slice(searchStartIndex, commaIndex).trim();
+            parts.push(currentLine.trim());
+            currentLine = '';
+            searchStartIndex = commaIndex + 1;
+        } else {
+            currentLine += address.slice(searchStartIndex, commaIndex + 1);
+            searchStartIndex = commaIndex + 1;
+        }
+    }
+    if (currentLine.trim()) {
+        parts.push(currentLine.trim());
+    }
+    return parts.join('\n');
+};
 const generateInvoicePDF = async (invoiceIDList, reprint = false, byZoneSort = false, byZoneSortMap = false) => {
     const neededData = {
         customers: new Set(),
@@ -307,7 +334,7 @@ const getTermsAndConditionsPage = () => {
                                 `T/A\n`,
                                 ...(Customers[invoice.customer].customer_name ? [`${Customers[invoice.customer].customer_name}\n`] : []),
                                 ...(Customers[invoice.customer].mobile ? [`${Customers[invoice.customer].mobile}\n`] : []),
-                                ...(Customers[invoice.customer].address ? [`${Customers[invoice.customer].address}\n`] : []),
+                                ...(Customers[invoice.customer].address ? formatAddressMultiline(Customers[invoice.customer].address, 10).split('\n').map(line => `${line}\n`) : [] ),
                                 ...(Customers[invoice.customer].city ? [`${Customers[invoice.customer].city}\n`] : []),
                                 ...(Customers[invoice.customer].postcode ? [`${Customers[invoice.customer].postcode}\n`] : []),
                             ],
@@ -1376,7 +1403,7 @@ const generateEmailInvoicePDF = async (invoiceIDList, reprint = false, byZoneSor
             fontSize: 8,
             columns: [
                 {text: footerText, width: '*'},
-                {text: `${cashInvoice ? 'CASH INVOICE' : Customers[customerID].customer_name}${currentPage === pageCount ? "\n[END OF INVOICE]" : ""}`, width: "15%"},
+                {text: `${cashInvoice ? 'CASH INVOICE' : Customers[customerID].customer_name}${currentPage === pageCount ? "\n[End of Confirmation]" : ""}`, width: "15%"},
                 {text: pageString, width: "10%"}
             ]
         }
@@ -1528,7 +1555,7 @@ const getOrderConfirmationPage = (logo) => ({
                                 `T/A\n`,
                                 ...(Customers[invoice.customer].customer_name ? [`${Customers[invoice.customer].customer_name}\n`] : []),
                                 ...(Customers[invoice.customer].mobile ? [`${Customers[invoice.customer].mobile}\n`] : []),
-                                ...(Customers[invoice.customer].address ? [`${Customers[invoice.customer].address}\n`] : []),
+                                ...(Customers[invoice.customer].address ? formatAddressMultiline(Customers[invoice.customer].address, 10).split('\n').map(line => `${line}\n`) : [] ),
                                 ...(Customers[invoice.customer].city ? [`${Customers[invoice.customer].city}\n`] : []),
                                 ...(Customers[invoice.customer].postcode ? [`${Customers[invoice.customer].postcode}\n`] : []),
                             ],

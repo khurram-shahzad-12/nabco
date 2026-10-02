@@ -340,7 +340,7 @@ const emailInvoiceToCustomer = async (invoice, invoicePdfBuffer, res) => {
         transporter.sendMail({
             from: `"Nabco" <${env.EMAIL_ADDRESS}>`,
             to: invoiceCustomer.email,
-            subject: "Order created",
+            subject: "Order confirmation",
             text: `Greetings ${addressee}, please find attached the invoice for your recent order.`,
             html: getInvoiceEmailBody(addressee),
             attachments: [
@@ -350,7 +350,7 @@ const emailInvoiceToCustomer = async (invoice, invoicePdfBuffer, res) => {
                     cid: 'company_logo'
                 },
                 {
-                    filename: "invoice.pdf",
+                    filename: "order-confirmation.pdf",
                     content: invoicePdfBuffer
                 }
             ]
