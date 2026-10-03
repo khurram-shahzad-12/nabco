@@ -139,6 +139,17 @@ const Invoices = props => {
         fetchEntries(emailAPI, success, fail);
     };
 
+    const sendInvoiceEmail = invoiceNo => {
+    const emailAPI = `/invoice/sendInvoiceEmail/${invoiceNo}`;
+    const success = (res) => {
+        displaySnackState("Invoice email successfully sent", "success", setSnackState);
+    };
+    const fail = (error) => {
+        console.error(error);
+        displaySnackState(`Failed to send invoice email - ${error.response ? error.response.data : error.message}`, "error", setSnackState);
+    };
+    fetchEntries(emailAPI, success, fail);
+};
     const reprintInvoice = invoiceNo => {
         getInvoiceReportsInNewTab([invoiceNo], "invoiceReprint.pdf", setSnackState);
     };
@@ -348,6 +359,7 @@ const Invoices = props => {
                     openPayments: handleOpenPaymentsForm,
                     openInvoice: openInvoice,
                     emailInvoice: emailInvoice,
+                    sendInvoiceEmail: sendInvoiceEmail,
                     updatePrintedStatus: sendInvoicePrintedStatus,
                     updatePickedStatus: sendInvoicePickedStatus,
                     // openInvoiceReprint: reprintInvoice,
