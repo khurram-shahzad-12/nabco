@@ -37,6 +37,7 @@ router.post('/', authenticate, allWriteInvoicesCheck, controller.addInvoice);
 router.post('/getItemHistory',authenticate, allReadInvoicesCheck, controller.getItemHistory);
 router.get('/getUnpaidInvoices/:customerID', authenticate, allReadInvoicesCheck, controller.getUnpaidInvoices);
 router.get('/emailInvoice/:id',authenticate, allReadInvoicesCheck, controller.emailInvoice);
+router.get('/sendInvoiceEmail/:id',authenticate, allReadInvoicesCheck, controller.sendInvoiceEmail);
 router.get('/printed/:id/:printedStatus',authenticate, allReadInvoicesCheck, controller.updatedPrintedStatus);
 router.get('/picked/:id/:pickedStatus',authenticate, allReadInvoicesCheck, controller.updatedPickedStatus);
 router.put('/:id',authenticate, editInvoicesCheck, controller.updateInvoice);

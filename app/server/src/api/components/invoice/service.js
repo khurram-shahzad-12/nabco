@@ -367,7 +367,44 @@ const emailInvoiceToCustomer = async (invoice, invoicePdfBuffer, res) => {
         res.status(400).send("Customer has no email");
     }
 };
-
+const sendInvoiceEmailToCustomer = async (invoice, invoicePdfBuffer, res) => {
+    if(!env.EMAIL_ENABLED) {
+        res.status(400).send("Emails are not currently enabled");
+    }
+    const projection = ['customer_name', 'legal_entity', 'email'];
+    const invoiceCustomer = await SERVICE_CUSTOMER.fetchOneCustomer({_id: invoice.customer}, projection);
+    if(invoiceCustomer.email.trim().length > 0) {
+        const addressee = invoiceCustomer.customer_name;
+        transporter.sendMail({
+            from: `"Nabco" <${env.EMAIL_ADDRESS}>`,
+            to: invoiceCustomer.email,
+            subject: "Invoice",
+            text: `Greetings ${addressee}, please find attached your invoice.`,
+            html: getInvoiceEmailBody(addressee),
+            attachments: [
+                {
+                    filename: "nabco.jpg",
+                    path: "./public/nabco.jpg",
+                    cid: 'company_logo'
+                },
+                {
+                    filename: "invoice.pdf",
+                    content: invoicePdfBuffer
+                }
+            ]
+        }).then(info => {
+            console.log(`Invoice email successfully sent to customer: ${addressee}`);
+            database.findByIdAndUpdate(Invoice, invoice._id, {invoice_email_sent: true});
+            res.sendStatus(200);
+        }).catch(err => {
+            console.error(err);
+            throw new Error("Error sending invoice email");
+        });
+    } else {
+        env.EMAIL_ENABLED && console.log(`No email for customer:${invoiceCustomer.customer_name}`);
+        res.status(400).send("Customer has no email");
+    }
+};
 const updateInvoicePrintedStatus = (invoiceId, updatedStatus) => {
     const newStatus = {printed: updatedStatus}
     if(!updatedStatus) {
@@ -461,6 +498,7 @@ module.exports = {
     getOrderForRoute,
     updateOrderPriority,
     checkCustomerCreditLimit,
+    sendInvoiceEmailToCustomer,
 };
 
 // exports.updateInvoicesAfterPriceChange = updateInvoicesAfterPriceChange;

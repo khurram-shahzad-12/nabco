@@ -9,6 +9,7 @@ import AttachEmailIcon from '@mui/icons-material/AttachEmail';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import PrintIcon from '@mui/icons-material/Print';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
 import Tooltip from '@mui/material/Tooltip';
 import Stack from '@mui/material/Stack';
 import { useAuth } from '../../contexts/AuthContext';
@@ -52,7 +53,13 @@ export const InvoiceActionCellRenderer = (props) => {
 			}
 		}
 	};
-
+	const sendInvoiceEmailAction = () => {
+		if(props.sendInvoiceEmail) {
+			if(window.confirm("Have you checked order and pricing?")) {
+				props.sendInvoiceEmail(props.value);
+			}
+		}
+	};
 	const updatePrintedAction = () => {
 		props.updatePrintedStatus(props.value, !props.data.printed);
 	};
@@ -88,9 +95,20 @@ export const InvoiceActionCellRenderer = (props) => {
 			</Tooltip>
 		}
 		{
-			props.emailInvoice && <Tooltip title={props.data.email_sent ? "Email already sent, click to send again" : "Email Invoice"}>
+			props.emailInvoice && <Tooltip title={props.data.email_sent ? "Order Confirmation already sent, click to send again" : "Send Order Confirmation"}>
 				<IconButton aria-label={props.data.email_sent ? "Email already sent, click to send again" : "Email Invoice"} onClick={emailInvoiceAction}>
 					{props.data.email_sent ? <MarkEmailReadIcon /> : <AttachEmailIcon />}
+				</IconButton>
+			</Tooltip>
+		}
+		{
+			props.sendInvoiceEmail &&
+			<Tooltip title={props.data.invoice_email_sent ? "Invoice email already sent, click to send again" : "Send Invoice Email"}>
+				<IconButton
+					aria-label={props.data.invoice_email_sent ? "Invoice email already sent, click to send again" : "Send Invoice Email"}
+					onClick={sendInvoiceEmailAction}
+				>
+					<ForwardToInboxIcon style={{ color: props.data.invoice_email_sent ? 'green' : undefined }} />
 				</IconButton>
 			</Tooltip>
 		}

@@ -130,7 +130,14 @@ const emailInvoice = async (req, res, next) => {
         await SERVICE_INVOICE.emailInvoiceToCustomer(invoice, invoicePdfBuffer, res);
     } catch (e) {next(e);}
 };
-
+const sendInvoiceEmail = async (req, res, next) => {
+    if (!(req.params.id && validate.id(req.params.id))) throw new Error("Invalid ID");
+    try {
+        const invoice = await SERVICE_INVOICE.fetchOneInvoice({_id: req.params.id});
+        const invoicePdfBuffer = await SERVICE_INVOICE_PDF.generateInvoicePDF([invoice._id]);
+        await SERVICE_INVOICE.sendInvoiceEmailToCustomer(invoice, invoicePdfBuffer, res);
+    } catch (e) {next(e);}
+};
 const updatedPrintedStatus = async (req, res, next) => {
     if (!(req.params.id && validate.id(req.params.id))) throw new Error("Invalid ID");
     const status = req.params.printedStatus.toLowerCase() === "true";
@@ -174,4 +181,5 @@ module.exports = {
     updatedPickedStatus,
     getOrderForRoute,
     updateOrderPriority,
+    sendInvoiceEmail,
 };
