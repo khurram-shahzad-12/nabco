@@ -301,7 +301,7 @@ const getTermsAndConditionsPage = () => {
     };
 };
     const UNDERSCORE = "_________________________________";
-    const SIGNATURE_CELL_MARGIN = [1, 10, 1, 1];
+    const SIGNATURE_CELL_MARGIN = [10, 10, 1, 10];
     const getInvoiceDefinition = invoice => {
         const currentInvoiceConfigData = getInvoiceConfigForDate(invoice.invoice_date);
         return {
@@ -510,9 +510,8 @@ const getTermsAndConditionsPage = () => {
                         dontBreakRows: true,
                         widths: ['50%', '50%'],
                         body: [
-                            [{text: 'Driver Name:              ' + UNDERSCORE, border: [true, true, false, false], margin: SIGNATURE_CELL_MARGIN}, {text: 'Payment Received: ' + UNDERSCORE, border: [false, true, true, false], margin: SIGNATURE_CELL_MARGIN}],
-                            [{text: 'Customer Name:       ' + UNDERSCORE, border: [true, false, false, false], margin: SIGNATURE_CELL_MARGIN}, {text: 'Payment Type:         ' + UNDERSCORE, border: [false, false, true, false], margin: SIGNATURE_CELL_MARGIN}],
-                            [{text: 'Customer Signature: ' + UNDERSCORE, border: [true, false, false, true], margin: SIGNATURE_CELL_MARGIN}, {text: ' ', border: [false, false, true, true], margin: SIGNATURE_CELL_MARGIN}],
+                            [{text: 'Customer Name:       ' + UNDERSCORE, border: [true, true, false, false], margin: SIGNATURE_CELL_MARGIN}, {text: 'Customer Signature: ' + UNDERSCORE, border: [false, true, true, false], margin: SIGNATURE_CELL_MARGIN}],
+                            [{text: 'Payment Received: ' + UNDERSCORE, border: [true, false, false, true], margin: SIGNATURE_CELL_MARGIN}, {text: 'Payment Type:         ' + UNDERSCORE, border: [false, false, true, true], margin: SIGNATURE_CELL_MARGIN}],
                         ]
                     }
                 }
@@ -1521,7 +1520,7 @@ const getOrderConfirmationPage = (logo) => ({
 },
 });
     const UNDERSCORE = "_________________________________";
-    const SIGNATURE_CELL_MARGIN = [1, 10, 1, 1];
+    const SIGNATURE_CELL_MARGIN = [10, 10, 1, 10];
     const getInvoiceDefinition = invoice => {
         const currentInvoiceConfigData = getInvoiceConfigForDate(invoice.invoice_date);
         return {
@@ -1731,9 +1730,9 @@ const getOrderConfirmationPage = (logo) => ({
                         dontBreakRows: true,
                         widths: ['50%', '50%'],
                         body: [
-                            [{text: 'Driver Name:              ' + UNDERSCORE, border: [true, true, false, false], margin: SIGNATURE_CELL_MARGIN}, {text: 'Payment Received: ' + UNDERSCORE, border: [false, true, true, false], margin: SIGNATURE_CELL_MARGIN}],
-                            [{text: 'Customer Name:       ' + UNDERSCORE, border: [true, false, false, false], margin: SIGNATURE_CELL_MARGIN}, {text: 'Payment Type:         ' + UNDERSCORE, border: [false, false, true, false], margin: SIGNATURE_CELL_MARGIN}],
-                            [{text: 'Customer Signature: ' + UNDERSCORE, border: [true, false, false, true], margin: SIGNATURE_CELL_MARGIN}, {text: ' ', border: [false, false, true, true], margin: SIGNATURE_CELL_MARGIN}],
+                            [{text: 'Customer Name:       ' + UNDERSCORE, border: [true, true, false, false], margin: SIGNATURE_CELL_MARGIN}, {text: 'Customer Signature: ' + UNDERSCORE, border: [false, true, true, false], margin: SIGNATURE_CELL_MARGIN}],
+                            
+                            [{text: 'Date: ' + UNDERSCORE, border: [true, false, false, true], margin: SIGNATURE_CELL_MARGIN}, {text: ' ', border: [false, false, true, true], margin: SIGNATURE_CELL_MARGIN}],
                         ]
                     }
                 }
